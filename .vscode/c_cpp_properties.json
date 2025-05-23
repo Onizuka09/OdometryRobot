@@ -6,11 +6,11 @@
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/Inc/*",
                 "${workspaceFolder}/Src/*",
-                "${workspaceFolder}/Startup/*",
-                "${workspaceFolder}/CMSIS/STM32F4_Headers/*"
+                "${workspaceFolder}/CMSIS/Startup/*",
+                "${workspaceFolder}/CMSIS/STM32G0_Headers/*"
             ],
-            "defines": [],
-            "compilerPath": "/usr/bin/clang",
+            "defines": ["DSTM32G070xx"],
+            "compilerPath": "/usr/bin/clang-15",
             "cStandard": "c17",
             "cppStandard": "c++14",
             "intelliSenseMode": "linux-clang-x64"

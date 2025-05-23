@@ -1,2 +1,4 @@
-Src/main.c:6:6:do_somthing	16	static
-Src/main.c:11:5:main	16	static
+Src/main.c:54:5:main	16	static
+Src/main.c:132:6:test_motor	24	static
+Src/main.c:156:6:PC13_EXTI_Config	8	static
+Src/main.c:188:6:SysTick_Handler	8	static

@@ -6,5 +6,6 @@
         "Src/syscalls.c": "c",
         "Src/sysmem.c": "c",
         "Startup/startup_stm32f401retx.s": "asm"
-    }
+    },
+    "cortex-debug.variableUseNaturalFormat": true
 }

@@ -1,0 +1,5 @@
+Src/USART.c:22:6:init_UARTx	16	static
+Src/USART.c:41:6:UARTx_write	16	static
+Src/USART.c:49:8:UARTx_read	16	static
+Src/USART.c:57:13:USARTx_clock_en	16	static
+Src/USART.c:68:17:calculate_baudrate	16	static

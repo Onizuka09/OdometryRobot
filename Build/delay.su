@@ -1,0 +1,2 @@
+Src/delay.c:15:6:InitSystick	8	static
+Src/delay.c:24:6:delay_ms	24	static

@@ -1,0 +1,5 @@
+Src/Debug_dirver.c:14:5:__io_putchar	16	static
+Src/Debug_dirver.c:30:6:debug_uart_init	8	static
+Src/Debug_dirver.c:37:6:debug_uart_write	16	static
+Src/Debug_dirver.c:41:6:debug_uart_read	16	static
+Src/Debug_dirver.c:46:6:print_console	24	static
