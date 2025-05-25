@@ -22,8 +22,8 @@ static void calculate_pin(uint8_t *pin, uint8_t *index)
 		*pin = *pin - 8;
 	}
 }
-// configures the UART1 AND 2 
-void GPIO_UART_Config(GPIO_TypeDef *GPIOx, PIN_Typedef PIN_x,uint8_t AFx)
+// configures the UART1 AND 2
+void GPIO_UART_Config(GPIO_TypeDef *GPIOx, PIN_Typedef PIN_x, uint8_t AFx)
 {
 	uint8_t pin = PIN_x;
 	uint8_t index = 0;
@@ -52,7 +52,6 @@ void GPIO_Config_Input(GPIO_TypeDef *GPIOx, PIN_Typedef PIN_x)
 	GPIOx->PUPDR |= (1U << ((pin * 2) + 1));
 }
 
-
 bool GPIO_PIN_READ(GPIO_TypeDef *GPIOx, PIN_Typedef pinx)
 {
 	return (GPIOx->IDR & (1U << pinx));
@@ -71,23 +70,23 @@ void GPIO_PIN_WRITE(GPIO_TypeDef *GPIOx, PIN_Typedef pinx, uint8_t state)
 void GPIO_PWM_LeftMotor_config()
 {
 	// PC1
-	// 0. Enable GPIOA 
+	// 0. Enable GPIOA
 	RCC->IOPENR |= RCC_IOPENR_GPIOCEN;
 	uint8_t pin = PIN_1;
 	uint8_t index = 0;
-	// 1. Configure mode to alternate function 
+	// 1. Configure mode to alternate function
 	GPIOC->MODER &= ~(1U << (pin * 2));
 	GPIOC->MODER |= (1U << ((pin * 2) + 1));
-	// 2. set output to high speed 
-	GPIOC->OSPEEDR&= ~(1U << (pin * 2));
+	// 2. set output to high speed
+	GPIOC->OSPEEDR &= ~(1U << (pin * 2));
 	GPIOC->OSPEEDR |= (1U << ((pin * 2) + 1));
-    // 3. Set pull-down (optional, helps with noise)
+	// 3. Set pull-down (optional, helps with noise)
 	GPIOC->PUPDR &= ~(1U << (pin * 2));
-	GPIOC->PUPDR  |= (1U << ((pin * 2) + 1));
-    
+	GPIOC->PUPDR |= (1U << ((pin * 2) + 1));
+
 	calculate_pin(&pin, &index);
 
-	// 4.  set alternate function as AF2 
+	// 4.  set alternate function as AF2
 	GPIOC->AFR[index] |= (AF2 << (pin * 4));
 }
 void GPIO_PWM_RightMotor_config()
@@ -96,19 +95,19 @@ void GPIO_PWM_RightMotor_config()
 	RCC->IOPENR |= RCC_IOPENR_GPIOCEN;
 	uint8_t pin = PIN_2;
 	uint8_t index = 0;
-	// 1. Configure mode to alternate function 
+	// 1. Configure mode to alternate function
 	GPIOC->MODER &= ~(1U << (pin * 2));
 	GPIOC->MODER |= (1U << ((pin * 2) + 1));
-	// 2. set output to high speed 
-	GPIOC->OSPEEDR&= ~(1U << (pin * 2));
+	// 2. set output to high speed
+	GPIOC->OSPEEDR &= ~(1U << (pin * 2));
 	GPIOC->OSPEEDR |= (1U << ((pin * 2) + 1));
-    // 3. Set pull-down (optional, helps with noise)
+	// 3. Set pull-down (optional, helps with noise)
 	GPIOC->PUPDR &= ~(1U << (pin * 2));
-	GPIOC->PUPDR  |= (1U << ((pin * 2) + 1));
-    
+	GPIOC->PUPDR |= (1U << ((pin * 2) + 1));
+
 	calculate_pin(&pin, &index);
 
-	// 4.  set alternate function as AF2 
+	// 4.  set alternate function as AF2
 	GPIOC->AFR[index] |= (AF2 << (pin * 4));
 }
 
@@ -117,39 +116,47 @@ void GPIO_LeftEncoder_config()
 	// - EconderA OUTA : PA8 (D7)
 	// - EncoderA OUTB : PA9 (D8)
 	// configure clock for GPIOA
+	RCC->IOPENR |= RCC_IOPENR_GPIOAEN;	// Enable GPIOA clock
+	
 
-	RCC->IOPENR |= RCC_IOPENR_GPIOAEN;
 
-	// configure GPIOmode to alternate function
-	// pin 8
-	GPIOA->MODER &= ~(1U << ((8 * 2)));
-	GPIOA->MODER |= (1U << ((8 * 2) + 1));
-	// pin 9
-	GPIOA->MODER &= ~(1U << ((9 * 2)));
-	GPIOA->MODER |= (1U << ((9 * 2) + 1));
-	// alternate function config set to timer
-	// pin8 set to tim1 channel 1
-	GPIOA->AFR[1] |= (AF2 << 0);
-	// pin9 set to tim1 channel 2
-	GPIOA->AFR[1] |= (AF2 << 4);
+	// RCC->IOPENR |= RCC_IOPENR_GPIOAEN;
+	uint8_t pinA = PIN_8;
+	uint8_t pinB = PIN_9;
+	uint8_t indexA = 0;
+	uint8_t indexB = 0;
+	// // configure GPIOmode to alternate function
+	// // pin 8
+	GPIOA->MODER &= ~ (GPIO_MODER_MODE8_Msk | GPIO_MODER_MODE9_Msk) ; 
+	GPIOA->MODER |= ((0x2 << (GPIO_MODER_MODE8_Pos))| (0x2 << (GPIO_MODER_MODE9_Pos))) ;
+	// // pin 9
+	// GPIOA->MODER &= ~(1U << ((pinB * 2)));
+	
+	// // alternate function config set to timer
+	calculate_pin(&pinA, &indexA);
+	// // pin8 set to tim1 channel 1
+	GPIOA->AFR[indexA] |= (AF2 << 4*pinA);
+	// // pin9 set to tim1 channel 2
+	calculate_pin(&pinB, &indexB);
+	GPIOA->AFR[indexB] |= (AF2 << 4*pinB);
 }
 
 void GPIO_RightEncoder_config()
 {
-	// - EconderB OUTA : Pc7 (D9) TIM3_ch2
-	// - EncoderB OUTB : PC6 (x) TIM3_ch1
-	RCC->IOPENR |= RCC_IOPENR_GPIOCEN;
 
-	// configure GPIOmode to alternate function
-	// pin 6
-	GPIOC->MODER &= ~(1U << ((6 * 2)));
-	GPIOC->MODER |= (1U << ((6 * 2) + 1));
-	// pin 7
-	GPIOC->MODER &= ~(1U << ((7 * 2)));
-	GPIOC->MODER |= (1U << ((7 * 2) + 1));
-	// alternate function config set to timer
-	// pin7 set to tim3 channel 1
-	GPIOC->AFR[0] |= (AF2 << 28);
-	// pin6 set to tim3 channel 2
-	GPIOC->AFR[0] |= (AF2 << 24);
+    
+    // Configure PC6 (TIM3_CH1) and PC7 (TIM3_CH2) as alternate function
+    GPIOC->MODER &= ~(GPIO_MODER_MODE6_Msk | GPIO_MODER_MODE7_Msk);
+    GPIOC->MODER |= (0x2 << GPIO_MODER_MODE6_Pos) |  // AF mode for PC6
+                    (0x2 << GPIO_MODER_MODE7_Pos);   // AF mode for PC7
+    
+    // Select AF1 (TIM3) for PC6 and PC7
+    GPIOC->AFR[0] &= ~(GPIO_AFRL_AFSEL6_Msk | GPIO_AFRL_AFSEL7_Msk);
+    GPIOC->AFR[0] |= (0x1 << GPIO_AFRL_AFSEL6_Pos) |  // AF1 for PC6
+                     (0x1 << GPIO_AFRL_AFSEL7_Pos);   // AF1 for PC7
+    
+    // Enable pull-ups (optional but recommended for encoders)
+    GPIOC->PUPDR &= ~(GPIO_PUPDR_PUPD6_Msk | GPIO_PUPDR_PUPD7_Msk);
+    GPIOC->PUPDR |= (0x1 << GPIO_PUPDR_PUPD6_Pos) |  // Pull-up for PC6
+                    (0x1 << GPIO_PUPDR_PUPD7_Pos);   // Pull-up for PC7
 }

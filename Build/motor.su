@@ -1,6 +1,6 @@
 Src/motor.c:3:6:init_motor	8	static
-Src/motor.c:19:6:backward	16	static
-Src/motor.c:30:6:forward	16	static
-Src/motor.c:41:6:right	16	static
-Src/motor.c:52:6:left	16	static
-Src/motor.c:63:6:stop	8	static
+Src/motor.c:21:6:backward	16	static
+Src/motor.c:32:6:forward	16	static
+Src/motor.c:43:6:right	16	static
+Src/motor.c:54:6:left	16	static
+Src/motor.c:65:6:stop	8	static

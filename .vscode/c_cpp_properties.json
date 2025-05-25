@@ -7,13 +7,14 @@
                 "${workspaceFolder}/Inc/*",
                 "${workspaceFolder}/Src/*",
                 "${workspaceFolder}/CMSIS/Startup/*",
+                "${workspaceFolder}/CMSIS/Include/*",
                 "${workspaceFolder}/CMSIS/STM32G0_Headers/*"
             ],
             "defines": ["DSTM32G070xx"],
-            "compilerPath": "/usr/bin/clang-15",
+            "compilerPath": "/opt/gcc-arm-none-eabi-10.3-2021.10/bin//arm-none-eabi-gcc",
             "cStandard": "c17",
             "cppStandard": "c++14",
-            "intelliSenseMode": "linux-clang-x64"
+            "intelliSenseMode": "linux-clang-arm"
         }
     ],
     "version": 4

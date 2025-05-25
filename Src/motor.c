@@ -14,6 +14,8 @@ void init_motor()
     Timer15_PWM_channel1_config();
     Timer15_PWM_channel2_config();
     Timer15_Enable();
+    Timer15_set_dutyCycle_ch1(0);
+    Timer15_set_dutyCycle_ch2(0);
 }
 
 void backward(uint8_t speedM1, uint8_t speedM2)

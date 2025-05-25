@@ -3,16 +3,20 @@ a line following robot using stm32F4 and implementing PID controller
 ### LED
 - Internal LED  PA5 
 ### PONT-H 
-- IN1 PB5  (D4)	
-- IN2 PB4  (D5)	
-- IN4 PB3  (D3)
-- IN3 PB1  (A3)
+- IN1 PB3  (D3)	
+- IN2 PB5  (D4)	
+- IN3 PB4  (D5)
+- IN4 PB1  (A3)
 
 - ENA Motor Left: PC1  PWM_timaer15_ch1   
 - ENB Motor Right:  PC2  PWM_timer15_ch2  
 
+left:  
+
 - EconderA OUTA : PA8 (D7) tim1_ch1 (encoder mode ) 
 - EncoderA OUTB : PA9 (D8) tim1_ch2 (encoder mode )
+
+right: 
 
 - EconderB OUTA : PC7 (D9) TIM3_ch2 (encoder mode )
 - EncoderB OUTB : PC6 (x) TIM3_ch1 (encoder mode )

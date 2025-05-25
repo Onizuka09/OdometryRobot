@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include "test.h"
 volatile unsigned long SystickCnt = 0;
 
 #define sensor_arr_size 5
@@ -33,14 +34,6 @@ volatile unsigned long SystickCnt = 0;
 
 #define DESIRED_DISTANCE_MM 400 // 15 cm = 150 mm
 
-typedef enum
-{
-    Forward,
-    Backward, // Fixed typo: "Backword" to "Backward"
-    Left,
-    Right
-} Directions;
-
 void PC13_EXTI_Config();
 
 void test_motor(Directions d, int speed);
@@ -54,6 +47,7 @@ int prevCntA = 0, prevCntB = 0;
 int main(void)
 {
     // Initialize GPIOA, GPIOB, and GPIOC
+
     GPIO_init();
     InitSystick();
     // debug_uart_init();
@@ -62,32 +56,28 @@ int main(void)
     GPIO_PIN_WRITE(GPIOA, PIN_5, 1);
     GPIO_Config_Input(GPIOC, PIN_13); // Configure internal button as input
     PC13_EXTI_Config();
-    // Configure encoder interrupts
-    // GPIO_LeftEncoder_config();
-    // GPIO_RightEncoder_config();
-    // timer1_LeftEncoder_confifg();
-    // timer3_RightEncoder_confifg();
     init_motor();
+    // Configure encoder interrupts
+    GPIO_LeftEncoder_config();
+    GPIO_RightEncoder_config();
+    timer1_LeftEncoder_confifg();
+    timer3_RightEncoder_confifg();
 
     while (1)
     {
-        for (int d = 0; d <= 99; d++)
-        {
-            TIM15->CCR1 = d;
-            delay_ms(10); // Adjust speed of fade
-        }
 
-        delay_ms(500);
+        cntA = test_encoder(TIM1) >> 2;
+        cntB = test_encoder(TIM3) >> 2;
+        GPIO_PIN_WRITE(GPIOB, IN3_ML, 0);
+        GPIO_PIN_WRITE(GPIOB, IN4_ML, 0);
 
-        // Fade out (100% to 0%)
-        for (int d = 99; d > 0; d--)
-        {
-            TIM15->CCR1 = d;
-            delay_ms(10); // Adjust speed of fade
-        }
+        GPIO_PIN_WRITE(GPIOB, IN1_MR, 0);
+        GPIO_PIN_WRITE(GPIOB, IN2_MR, 0);
+        Timer15_set_dutyCycle_ch1(0);
+        Timer15_set_dutyCycle_ch2(0);
 
-        delay_ms(500);
-        // forward(50, 50);
+        // delay_ms(500);
+
         // GPIOA->ODR &= ~(1U << PIN_5); // turn on LED
         // delay_ms(1000);
         // GPIOA->ODR |= (1U << PIN_5); // turn on LED
@@ -110,7 +100,7 @@ int main(void)
         //     forward(20, 20);
 
         //     // Read encoder counts
-        //     cntA = TIM1->CNT >> 2;
+        // cntA = TIM1->CNT >> 2;
         //     cntB = TIM3->CNT >> 2;
 
         //     // Calculate distance in mm for each wheel
@@ -127,30 +117,6 @@ int main(void)
     }
 
     return 0;
-}
-
-void test_motor(Directions d, int speed)
-{
-    int x = speed;
-    switch (d)
-    {
-    case Forward:
-        forward(x, x);
-        break;
-    case Backward:
-        backward(x, x);
-        break;
-    case Left:
-        left(x, x);
-        break;
-    case Right:
-        right(x, x);
-        break;
-    default:
-        break;
-    }
-    delay_ms(5000);
-    stop();
 }
 
 void PC13_EXTI_Config()

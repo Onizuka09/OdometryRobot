@@ -10,7 +10,10 @@ C_SRCS += \
     ./Src/GPIO.c \
 	./Src/timer.c \
 	./Src/USART.c \
+	./Src/test.c \
 	./Src/Debug_dirver.c
+
+
 
 S_SRCS += \
 	./CMSIS/Startup/startup_stm32g070rbtx.s
@@ -21,6 +24,8 @@ OBJS_s += \
 # Object files
 OBJS = $(C_SRCS:./Src/%.c=./Build/%.o)
 
+TEST_FILE = ./test/test_Encoder.c
+TEST_OBJ = $(TEST_FILE:./test/%.c=./Build/%.o)
 # Dependency files
 C_DEPS = $(OBJS:.o=.d)
 #inlcue path 
@@ -54,6 +59,17 @@ bin: Template_proj.elf
 	arm-none-eabi-objcopy -O binary Template_proj.elf Template_proj.bin 
 
 
+
+.PHONY: test 
+test: $(TEST_OBJ) $(OBJS_s)
+	$(CC) $^ -o Template_proj.elf  -mcpu=cortex-m0plus -T"./CMSIS/STM32G070RBTX_FLASH.ld" \
+	--specs=nosys.specs -Wl,--gc-sections -static --specs=nano.specs \
+	-mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+	@echo 'Finished building target: $@'
+	@echo ' '
+$(TEST_OBJ): ./Build/%.o: ./test/%.c
+	echo "called "
+	$(CC) $(CFLAGS) -c $< -o $@
 # target 
 Template_proj.elf : $(OBJS) $(OBJS_s)
 	$(CC) $^ -o $@ -mcpu=cortex-m0plus -T"./CMSIS/STM32G070RBTX_FLASH.ld" \

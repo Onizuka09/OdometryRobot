@@ -1,0 +1,4 @@
+test/test_Encoder.c:3:6:SystemInit	8	static
+test/test_Encoder.c:9:5:main	8	static
+test/test_Encoder.c:26:6:GPIO_Init	8	static
+test/test_Encoder.c:47:6:TIM3_Encoder_Init	8	static
