@@ -15,7 +15,7 @@ uint8_t max_duty_cycle = 100;
 #define CCMR_OC2Mpwm (6U << 12)
 #define CCMR_OC2PE (1U << 11)
 
-void Timer15_init()
+void Timer15_init(int PSC , int ARR)
 {
 
     /* timer15 configuration  */
@@ -24,16 +24,13 @@ void Timer15_init()
     // disable Timer before configuration
     TIM15->CR1 &= ~TIM_CR1_CEN;
     // set prescaler
-    TIM15->PSC = 16 - 1; // 16 MHz / 1600 = 10,000 Hz
+    TIM15->PSC = PSC; // 16 MHz / 1600 = 10,000 Hz
     // set auto reload value
-    TIM15->ARR = 100 - 1; // 10,000 Hz / 10,000  = 1 Hz (1 s)
-    max_duty_cycle = 100;
+    TIM15->ARR = ARR; // 10,000 Hz / 10,000  = 1 Hz (1 s)
+    max_duty_cycle = ARR;
     // reset counter value
     TIM15->CNT = 0;
-    // edge eligned mode Timer 15 is already configured to be edge eligned
-    // TIM15->CR1 &= ~CR1_CMS;
-    // direction DIR (upcount)
-    // TIM15->CR1 &= ~CR1_DIR;
+  
     // enable APRE ( Reload register) for safety ( recommending because it introduces a smooth transitionning when changing the PWM periods ARR)
     TIM15->CR1 |= TIM_CR1_ARPE;
     // EGR enable (UG) update generation is enabled (ensures synchronizing the udpate events ( reinializes the timer and update associated register ARR and other control registers ))
@@ -71,7 +68,7 @@ void Timer15_PWM_channel2_config()
 {
 
     // 1. Set PWM mode 1 (OC1M = 110)
-    TIM15->CCMR1 &= ~TIM_CCMR1_OC2M_Msk;
+    // TIM15->CCMR1 &= ~TIM_CCMR1_OC2M_Msk;
     TIM15->CCMR1 |= (0x6 << TIM_CCMR1_OC2M_Pos);
 
     // 2. Enable output preload
@@ -81,25 +78,19 @@ void Timer15_PWM_channel2_config()
     TIM15->CCR2 = 0;
 
     // 4. Configure output polarity (active LOW)
-    TIM15->CCER |= TIM_CCER_CC1P;
+    TIM15->CCER |= TIM_CCER_CC2P;
 
     // 5. Enable channel output
     TIM15->CCER |= TIM_CCER_CC2E;
 }
 void Timer15_set_dutyCycle_ch1(uint8_t speed)
 {
-    if (speed > 100)
-        speed = max_duty_cycle;
-    if (speed < 0)
-        speed = 0;
+
     TIM15->CCR1 = speed;
 }
 void Timer15_set_dutyCycle_ch2(uint8_t speed)
 {
-    if (speed > 100)
-        speed = max_duty_cycle;
-    if (speed < 0)
-        speed = 0;
+
     TIM15->CCR2 = speed;
 }
 void timer1_LeftEncoder_confifg()

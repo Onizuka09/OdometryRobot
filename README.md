@@ -42,7 +42,12 @@ const int pulsesPerRevolution = 34 * 13 ; // Number of pulses per revolution of 
 // Distance per pulse
 const float distancePerPulse = (2 * 3.14159 * wheelRadius) / pulsesPerRevolution;
 
-
+## PWM Frequencies for Motor control 
+Recommended PWM Frequencies for DC Motors
+Motor Type	Ideal Frequency Range	Why?
+Small Brushed DC (e.g., hobby motors)	5kHz - 20kHz	Above audible range, good torque control
+Large Brushed DC	500Hz - 5kHz	Lower switching losses in power drivers
+Coreless Motors	20kHz - 50kHz	Avoids coil resonance frequencies
 
 
 

@@ -2,10 +2,10 @@ Src/GPIO.c:6:6:GPIO_init	8	static
 Src/GPIO.c:15:13:calculate_pin	16	static
 Src/GPIO.c:26:6:GPIO_UART_Config	32	static
 Src/GPIO.c:37:6:GPIO_Config_Output	24	static
-Src/GPIO.c:44:6:GPIO_Config_Input	24	static
-Src/GPIO.c:55:6:GPIO_PIN_READ	16	static
-Src/GPIO.c:59:6:GPIO_PIN_WRITE	16	static
-Src/GPIO.c:70:6:GPIO_PWM_LeftMotor_config	24	static
-Src/GPIO.c:92:6:GPIO_PWM_RightMotor_config	24	static
-Src/GPIO.c:114:6:GPIO_LeftEncoder_config	24	static
-Src/GPIO.c:144:6:GPIO_RightEncoder_config	8	static
+Src/GPIO.c:52:6:GPIO_Config_Input	24	static
+Src/GPIO.c:64:6:GPIO_PIN_READ	16	static
+Src/GPIO.c:68:6:GPIO_PIN_WRITE	16	static
+Src/GPIO.c:80:6:GPIO_PWM_LeftMotor_config	24	static
+Src/GPIO.c:102:6:GPIO_PWM_RightMotor_config	24	static
+Src/GPIO.c:124:6:GPIO_LeftEncoder_config	24	static
+Src/GPIO.c:154:6:GPIO_RightEncoder_config	8	static

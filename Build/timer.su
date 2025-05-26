@@ -1,8 +1,8 @@
-Src/timer.c:18:6:Timer15_init	8	static
-Src/timer.c:42:6:Timer15_Enable	8	static
-Src/timer.c:50:6:Timer15_PWM_channel1_config	8	static
-Src/timer.c:70:6:Timer15_PWM_channel2_config	8	static
-Src/timer.c:89:6:Timer15_set_dutyCycle_ch1	16	static
-Src/timer.c:97:6:Timer15_set_dutyCycle_ch2	16	static
-Src/timer.c:105:6:timer1_LeftEncoder_confifg	8	static
-Src/timer.c:120:6:timer3_RightEncoder_confifg	8	static
+Src/timer.c:18:6:Timer15_init	16	static
+Src/timer.c:39:6:Timer15_Enable	8	static
+Src/timer.c:47:6:Timer15_PWM_channel1_config	8	static
+Src/timer.c:67:6:Timer15_PWM_channel2_config	8	static
+Src/timer.c:86:6:Timer15_set_dutyCycle_ch1	16	static
+Src/timer.c:91:6:Timer15_set_dutyCycle_ch2	16	static
+Src/timer.c:96:6:timer1_LeftEncoder_confifg	8	static
+Src/timer.c:111:6:timer3_RightEncoder_confifg	8	static

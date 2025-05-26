@@ -5,6 +5,8 @@ void pwm_test()
     for (int d = 0; d <= 99; d++)
     {
         TIM15->CCR1 = d;
+        TIM15->CCR2 = d;
+
         delay_ms(10); // Adjust speed of fade
     }
 
@@ -14,6 +16,8 @@ void pwm_test()
     for (int d = 99; d > 0; d--)
     {
         TIM15->CCR1 = d;
+        TIM15->CCR2 = d;
+
         delay_ms(10); // Adjust speed of fade
     }
 }

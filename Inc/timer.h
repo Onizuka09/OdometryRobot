@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include "stm32g070xx.h"
 
-void Timer15_init();
+void Timer15_init(int PSC, int ARR);
 void Timer15_Enable(); 
 void Timer15_PWM_channel1_config();
 void Timer15_PWM_channel2_config();

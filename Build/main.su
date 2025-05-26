@@ -1,3 +1,6 @@
-Src/main.c:49:5:main	8	static
-Src/main.c:127:6:PC13_EXTI_Config	8	static
-Src/main.c:159:6:SysTick_Handler	8	static
+./CMSIS/Include/core_cm0plus.h:741:22:__NVIC_EnableIRQ	16	static
+./CMSIS/Include/core_cm0plus.h:850:22:__NVIC_SetPriority	24	static
+Src/main.c:48:5:main	8	static
+Src/main.c:125:6:PC13_EXTI_Config	8	static
+Src/main.c:150:6:EXTI4_15_IRQHandler	8	static
+Src/main.c:160:6:SysTick_Handler	8	static

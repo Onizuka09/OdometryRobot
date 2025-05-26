@@ -1,6 +1,7 @@
 # Source files
 C_SRCS += \
 	./Src/main.c \
+	./Src/pwm.c \
 	./Src/led.c \
 	./Src/syscalls.c \
 	./Src/sysmem.c \

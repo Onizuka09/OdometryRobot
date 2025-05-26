@@ -5,6 +5,7 @@
 #include <stdint.h>
 #define IN1_MR PIN_3
 #define IN2_MR PIN_5
+
 #define IN3_ML PIN_4
 #define IN4_ML PIN_1
 
@@ -27,7 +28,7 @@ typedef enum
     Left,
     Right
 } Directions;
-void init_motor();
+void init_motor(int PSC,int  ARR);
 void forward(uint8_t speedM1, uint8_t speedM2);
 void backward(uint8_t speedM1, uint8_t speedM2);
 void left(uint8_t speedM1, uint8_t speedM2) ;

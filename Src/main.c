@@ -1,5 +1,6 @@
 #include "delay.h"
 #include "motor.h"
+#include "pwm.h"
 #include "Debug_dirver.h"
 #include <stdint.h>
 #include <stdlib.h>
@@ -53,10 +54,10 @@ int main(void)
     // debug_uart_init();
 
     GPIO_Config_Output(GPIOA, PIN_5);
-    GPIO_PIN_WRITE(GPIOA, PIN_5, 1);
+    GPIO_PIN_WRITE(GPIOA, PIN_5, 0);
     GPIO_Config_Input(GPIOC, PIN_13); // Configure internal button as input
     PC13_EXTI_Config();
-    init_motor();
+    init_motor(15, 99);
     // Configure encoder interrupts
     GPIO_LeftEncoder_config();
     GPIO_RightEncoder_config();
@@ -65,16 +66,18 @@ int main(void)
 
     while (1)
     {
-
-        cntA = test_encoder(TIM1) >> 2;
-        cntB = test_encoder(TIM3) >> 2;
         GPIO_PIN_WRITE(GPIOB, IN3_ML, 0);
-        GPIO_PIN_WRITE(GPIOB, IN4_ML, 0);
+        GPIO_PIN_WRITE(GPIOB, IN4_ML, 1);
 
-        GPIO_PIN_WRITE(GPIOB, IN1_MR, 0);
+        GPIO_PIN_WRITE(GPIOB, IN1_MR, 1);
         GPIO_PIN_WRITE(GPIOB, IN2_MR, 0);
-        Timer15_set_dutyCycle_ch1(0);
-        Timer15_set_dutyCycle_ch2(0);
+
+        PWM_TIM15_CH1_SetDutyCyle(70);
+        PWM_TIM15_CH2_SetDutyCyle(70);
+        cntA = TIM1->CNT >> 2;
+        cntB = TIM3->CNT >> 2;
+        // Timer15_set_dutyCycle_ch1(0);
+        // Timer15_set_dutyCycle_ch2(100);
 
         // delay_ms(500);
 
@@ -124,33 +127,36 @@ void PC13_EXTI_Config()
     __disable_irq();
     // Enable clock access to SYSCFG
     RCC->APBENR2 |= RCC_APBENR2_SYSCFGEN;
-    // Connect EXTI line with PC13
+    // RCC->APBENR2 |= RCC_AHBENR_EX;
 
-    // SYSCFG->EXTICR[3] &= ~(0xf << 4); // Reset
-    // SYSCFG->EXTICR[3] |= (0x2 << 4);  // Connect EXTI line EXTI 15_10
-    // // Unmask EXTI13
-    // EXTI->IMR |= EXTI_IMR_IM13;
-    // // Select rising edge trigger
-    // EXTI->RTSR |= EXTI_RTSR_TR13;
-    // EXTI->FTSR &= ~EXTI_FTSR_TR13;
-    // // Enable EXTI13 line in NVIC
-    // NVIC_SetPriority(EXTI15_10_IRQn, 1);
-    // NVIC_EnableIRQ(EXTI15_10_IRQn);
+    // Connect EXTI line with PC13
+    // x = 13 / 4 = 3.25 => get rid of the deciaml number => 3 
+    // use the formula m = 4*2 = 8 => m+3 = 11 
+    EXTI->EXTICR[3] |= (0x2 << 8);   // PC13 (0x02)
+   
+    // Unmask EXTI13
+    EXTI->IMR1 |= EXTI_IMR1_IM13;
+    // Select rising edge trigger
+    EXTI->RTSR1 |= EXTI_RTSR1_RT13 ;
+    EXTI->FTSR1 &= ~EXTI_FTSR1_FT13;
+    // Enable EXTI13 line in NVIC
+    NVIC_SetPriority(EXTI4_15_IRQn, 1);
+    NVIC_EnableIRQ(EXTI4_15_IRQn);
     __enable_irq();
 }
 
-// EXTI15_10_IRQHandler remains commented out as in the original
-/*
-void EXTI15_10_IRQHandler(void)
+// EXTI4_15_IRQn
+
+void EXTI4_15_IRQHandler(void)
 {
-    if (EXTI->PR & (1U << 13))
+    if (EXTI->RPR1 & (1U << 13))
     {
-        EXTI->PR |= (1U << 13); // Clear the pending bit
+        EXTI->RPR1 |= (1U << 13); // Clear the pending bit
         GPIOA->ODR ^= (1U << PIN_5);
     }
     return;
 }
-*/
+
 void SysTick_Handler(void)
 {
     SystickCnt++;

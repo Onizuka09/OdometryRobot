@@ -40,6 +40,14 @@ void GPIO_Config_Output(GPIO_TypeDef *GPIOx, PIN_Typedef PIN_x)
 
 	GPIOx->MODER |= (1U << (pin * 2));
 	GPIOx->MODER &= ~(1U << ((pin * 2) + 1));
+
+		// 3. Set pull-down (optional, helps with noise)
+	GPIOx->PUPDR &= ~(1U << (pin * 2));
+	GPIOx->PUPDR |= (1U << ((pin * 2) + 1));
+	// push pull 
+	GPIOx->OTYPER &= ~(1U << pin );
+	GPIOx->ODR =0;
+
 }
 void GPIO_Config_Input(GPIO_TypeDef *GPIOx, PIN_Typedef PIN_x)
 {
@@ -50,6 +58,7 @@ void GPIO_Config_Input(GPIO_TypeDef *GPIOx, PIN_Typedef PIN_x)
 
 	GPIOx->PUPDR &= ~(1U << (pin * 2));
 	GPIOx->PUPDR |= (1U << ((pin * 2) + 1));
+
 }
 
 bool GPIO_PIN_READ(GPIO_TypeDef *GPIOx, PIN_Typedef pinx)
@@ -57,6 +66,7 @@ bool GPIO_PIN_READ(GPIO_TypeDef *GPIOx, PIN_Typedef pinx)
 	return (GPIOx->IDR & (1U << pinx));
 }
 void GPIO_PIN_WRITE(GPIO_TypeDef *GPIOx, PIN_Typedef pinx, uint8_t state)
+
 {
 	if (state)
 	{

@@ -1,0 +1,6 @@
+Src/pwm.c:4:13:calculate_pin	16	static
+Src/pwm.c:14:6:PWM_TIM15_CH1_SetDutyCyle	16	static
+Src/pwm.c:17:6:PWM_TIM15_CH2_SetDutyCyle	16	static
+Src/pwm.c:21:6:PWM_TIM15_CH1_Start	8	static
+Src/pwm.c:28:6:PWM_TIM15_CH1_Config	8	static
+Src/pwm.c:69:6:PWM_TIM15_CH2_Config	16	static
