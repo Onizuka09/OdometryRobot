@@ -67,6 +67,6 @@ void stop()
 
     GPIO_PIN_WRITE(GPIOB, IN1_MR, 0);
     GPIO_PIN_WRITE(GPIOB, IN2_MR, 0);
-    Timer15_set_dutyCycle_ch1(0);
-    Timer15_set_dutyCycle_ch2(0);
+    PWM_TIM15_CH1_SetDutyCyle(0);
+    PWM_TIM15_CH2_SetDutyCyle(0);
 }

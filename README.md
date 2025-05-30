@@ -1,4 +1,47 @@
-a line following robot using stm32F4 and implementing PID controller
+# RobotMechi: Un robot autonome
+
+RobotMechi est un robot autonome qui interprète une série de commandes et suit un chemin spécifié. Voici une description détaillée de ses composants et fonctionnalités.
+
+## Architecture du système 
+![alt text](image.png)
+
+## Exemple de commande d'entrée
+
+bash
+forward : 100m
+Right : 90°
+forward : 100m
+Right   :90°
+forward :100m
+Left :90°
+
+
+Avec cette série de mouvements, le robot crée un chemin. Le système est divisé en deux parties principales :
+
+### Matériel
+- **Moteurs avec encodeurs** : Pour contrôler le mouvement et mesurer la position.
+- **Capteurs** :
+  - Accéléromètre
+  - Gyroscope
+- **Microcontrôleur** :
+  - Le STM32F4 est utilisé comme MCU principal.
+  - Contrôle la vitesse et l'orientation des moteurs à l'aide de PWM et d'un minuteur.
+  - Reçoit des retours de position via les encodeurs.
+
+### Système de contrôle
+- **Boucle de rétroaction fermée** : Garantit la vitesse et l'orientation correctes à l'aide des données de l'accéléromètre et du gyroscope.
+
+---
+
+## Communication entre App et PathFollower
+
+L'application envoie la série de commandes, et le système PathFollower les reçoit. Les options de communication incluent :
+
+- **UART** : Le MCU est connecté à l'ordinateur portable via un port série.
+- **MQTT** : L'application publie les commandes au format JSON sur un sujet. Le PathFollower s'abonne à ce sujet pour recevoir les commandes.
+
+---
+
 ## PINOUTs 
 ### LED
 - Internal LED  PA5 
@@ -33,7 +76,7 @@ right:
 - blue: Vcc 
 - Yellow: OUTA 
 - White: OUTB 
-
+```c
 const float wheelRadius = 6.7/2; // Radius of the wheel in meters (e.g., 5 cm)
 // for full rotation the encoder does 13 puleses 
 // Gear box  is 34 : 1 ratio 
@@ -41,7 +84,7 @@ const int pulsesPerRevolution = 34 * 13 ; // Number of pulses per revolution of 
 
 // Distance per pulse
 const float distancePerPulse = (2 * 3.14159 * wheelRadius) / pulsesPerRevolution;
-
+```
 ## PWM Frequencies for Motor control 
 Recommended PWM Frequencies for DC Motors
 Motor Type	Ideal Frequency Range	Why?
