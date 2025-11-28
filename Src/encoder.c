@@ -1,4 +1,4 @@
-#include "timer.h"
+#include "encoder.h"
 #include <stm32g070xx.h>
 uint8_t max_duty_cycle = 100;
 #define CR1_CEN (1U << 0) // enable timer15
@@ -139,4 +139,13 @@ void timer3_RightEncoder_confifg()
 
     // Enable counter
     TIM3->CR1 |= TIM_CR1_CEN;
+}
+
+
+uint16_t timer1_LeftEncoder_Read(){
+    return (int16_t) TIM1->CNT  ; 
+}
+
+uint16_t timer3_RightEncoder_Read() { 
+    return (int16_t)TIM3->CNT ; 
 }

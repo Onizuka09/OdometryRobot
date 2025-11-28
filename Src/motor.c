@@ -1,6 +1,9 @@
 #include "motor.h"
 #include "pwm.h"
-void init_motor(int PSC, int ARR)
+
+
+
+void init_motors()
 {
 
     GPIO_Config_Output(IN4_ML_port, IN4_ML);
@@ -15,18 +18,8 @@ void init_motor(int PSC, int ARR)
     PWM_TIM15_CH2_SetDutyCyle(0);
 }
 
-void backward(uint8_t speedM1, uint8_t speedM2)
-{
-    GPIO_PIN_WRITE(GPIOB, IN3_ML, 0);
-    GPIO_PIN_WRITE(GPIOB, IN4_ML, 1);
 
-    GPIO_PIN_WRITE(GPIOB, IN1_MR, 0);
-    GPIO_PIN_WRITE(GPIOB, IN2_MR, 1);
-
-    PWM_TIM15_CH1_SetDutyCyle(speedM1);
-    PWM_TIM15_CH2_SetDutyCyle(speedM2);
-}
-void forward(uint8_t speedM1, uint8_t speedM2)
+void run_motors(int8_t speedML, int8_t speedMR)
 {
     GPIO_PIN_WRITE(GPIOB, IN3_ML, 0);
     GPIO_PIN_WRITE(GPIOB, IN4_ML, 1);
@@ -34,39 +27,7 @@ void forward(uint8_t speedM1, uint8_t speedM2)
     GPIO_PIN_WRITE(GPIOB, IN1_MR, 1);
     GPIO_PIN_WRITE(GPIOB, IN2_MR, 0);
 
-    PWM_TIM15_CH1_SetDutyCyle(speedM1);
-    PWM_TIM15_CH2_SetDutyCyle(speedM2);
+    PWM_TIM15_CH1_SetDutyCyle(speedML);
+    PWM_TIM15_CH2_SetDutyCyle(speedMR);
 }
-void right(uint8_t speedM1, uint8_t speedM2)
-{
 
-    GPIO_PIN_WRITE(GPIOB, IN3_ML, 0);
-    GPIO_PIN_WRITE(GPIOB, IN4_ML, 1);
-
-    GPIO_PIN_WRITE(GPIOB, IN1_MR, 1);
-    GPIO_PIN_WRITE(GPIOB, IN2_MR, 0);
-    Timer15_set_dutyCycle_ch1(speedM1);
-    Timer15_set_dutyCycle_ch2(speedM2);
-}
-void left(uint8_t speedM1, uint8_t speedM2)
-{
-    GPIO_PIN_WRITE(GPIOB, IN3_ML, 1);
-    GPIO_PIN_WRITE(GPIOB, IN4_ML, 0);
-
-    GPIO_PIN_WRITE(GPIOB, IN1_MR, 1);
-    GPIO_PIN_WRITE(GPIOB, IN2_MR, 0);
-
-    Timer15_set_dutyCycle_ch1(speedM1);
-    Timer15_set_dutyCycle_ch2(speedM2);
-}
-void stop()
-{
-
-    GPIO_PIN_WRITE(GPIOB, IN3_ML, 0);
-    GPIO_PIN_WRITE(GPIOB, IN4_ML, 0);
-
-    GPIO_PIN_WRITE(GPIOB, IN1_MR, 0);
-    GPIO_PIN_WRITE(GPIOB, IN2_MR, 0);
-    PWM_TIM15_CH1_SetDutyCyle(0);
-    PWM_TIM15_CH2_SetDutyCyle(0);
-}

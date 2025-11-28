@@ -1,98 +1,187 @@
-# Source files
-C_SRCS += \
-	./Src/main.c \
-	./Src/pwm.c \
-	./Src/led.c \
-	./Src/syscalls.c \
-	./Src/sysmem.c \
-	./Src/system_stm32g0xx.c \
-	./Src/motor.c \
-	./Src/delay.c \
-    ./Src/GPIO.c \
-	./Src/timer.c \
-	./Src/USART.c \
-	./Src/test.c \
-	./Src/Debug_dirver.c
+###############################################################################
+# Project Configuration
+###############################################################################
 
+PROJECT_NAME  = Template_proj
+TARGET        = $(PROJECT_NAME).elf
+BINARY        = $(PROJECT_NAME).bin
 
+# MCU Configuration
+MCU           = cortex-m0plus
+FLOAT_ABI     = soft
 
-S_SRCS += \
-	./CMSIS/Startup/startup_stm32g070rbtx.s
+###############################################################################
+# Toolchain Configuration
+###############################################################################
 
-OBJS_s += \
-	./Build/startup_stm32g070rbtx.o
+CC            = arm-none-eabi-gcc
+OBJCOPY       = arm-none-eabi-objcopy
+FLASH_TOOL    = st-flash
 
-# Object files
-OBJS = $(C_SRCS:./Src/%.c=./Build/%.o)
+###############################################################################
+# Directory Structure
+###############################################################################
 
-TEST_FILE = ./test/test_Encoder.c
-TEST_OBJ = $(TEST_FILE:./test/%.c=./Build/%.o)
+BUILD_DIR     = ./Build
+SRC_DIR       = ./Src
+TEST_DIR      = ./test
+INC_DIR       = ./Inc
+CMSIS_INC     = ./CMSIS/Include
+CMSIS_HEADERS = ./CMSIS/STM32G0_Headers
+STARTUP_DIR   = ./CMSIS/Startup
+LINKER_DIR    = ./CMSIS
+
+###############################################################################
+# Source Files
+###############################################################################
+
+# C Source Files
+C_SRCS = \
+	$(SRC_DIR)/main.c \
+	$(SRC_DIR)/pwm.c \
+	$(SRC_DIR)/led.c \
+	$(SRC_DIR)/syscalls.c \
+	$(SRC_DIR)/sysmem.c \
+	$(SRC_DIR)/system_stm32g0xx.c \
+	$(SRC_DIR)/motor.c \
+	$(SRC_DIR)/delay.c \
+	$(SRC_DIR)/GPIO.c \
+	$(SRC_DIR)/odometry.c \
+	$(SRC_DIR)/encoder.c \
+	$(SRC_DIR)/USART.c \
+	$(SRC_DIR)/test.c \
+	$(SRC_DIR)/odometry.c \
+	$(SRC_DIR)/Debug_dirver.c \
+	$(SRC_DIR)/system_clk.c
+
+# Assembly Source Files
+S_SRCS = \
+	$(STARTUP_DIR)/startup_stm32g070rbtx.s
+
+# Test Files
+TEST_FILE = $(TEST_DIR)/test_Encoder.c
+
+###############################################################################
+# Object Files
+###############################################################################
+
+OBJS       = $(C_SRCS:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
+OBJS_s     = $(S_SRCS:$(STARTUP_DIR)/%.s=$(BUILD_DIR)/%.o)
+TEST_OBJ   = $(TEST_FILE:$(TEST_DIR)/%.c=$(BUILD_DIR)/%.o)
+
 # Dependency files
 C_DEPS = $(OBJS:.o=.d)
-#inlcue path 
-Inc = ./Inc/
-# # Compiler flags
-# CFLAGS = -mcpu=cortex-m0 -std=gnu11 -g3 -DDEBUG -DSTM32G0  -DSTM32G070xx \
-# 		 -I./Inc -I./CMSIS/Include -I./CMSIS/STM32G0_Headers -O0 -ffunction-sections -fdata-sections \
-# 		 -Wall -fstack-usage -MMD -MP --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb
 
+###############################################################################
+# Compiler and Linker Flags
+###############################################################################
 
-# LD_flags =  -mcpu=cortex-m0 -g3 -DDEBUG -c -x assembler-with-cpp -MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "$@" "$<"
- 
-# # Compiler command
-# CC = arm-none-eabi-gcc
-#
-# ---- 
-CFLAGS = -mcpu=cortex-m0plus -std=gnu11 -g3 -DDEBUG -DSTM32G070xx \
-		 -I$(Inc) -I./CMSIS/Include -I./CMSIS/STM32G0_Headers -O0 -ffunction-sections -fdata-sections \
-		 -Wall -fstack-usage -MMD -MP --specs=nano.specs -mthumb
+# Common Flags
+COMMON_FLAGS = -mcpu=$(MCU) -mthumb -mfloat-abi=$(FLOAT_ABI)
 
-ASFLAGS = -mcpu=cortex-m0plus -g3 -DDEBUG -c -x assembler-with-cpp -MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" --specs=nano.specs -mthumb
+# Compiler Flags
+CFLAGS = $(COMMON_FLAGS) \
+         -std=gnu11 \
+         -g3 \
+         -DDEBUG \
+         -DSTM32G070xx \
+         -O0 \
+         -ffunction-sections \
+         -fdata-sections \
+         -Wall \
+         -fstack-usage \
+         -MMD \
+         -MP \
+         --specs=nano.specs
 
-# Compiler command
-CC = arm-none-eabi-gcc
+# Include Directories
+CFLAGS += -I$(INC_DIR) \
+          -I$(CMSIS_INC) \
+          -I$(CMSIS_HEADERS)
 
+# Assembly Flags
+ASFLAGS = $(COMMON_FLAGS) \
+          -g3 \
+          -DDEBUG \
+          -c \
+          -x assembler-with-cpp \
+          -MMD \
+          -MP \
+          -MF"$(@:%.o=%.d)" \
+          -MT"$@" \
+          --specs=nano.specs
 
-# Rule to include all object files for the 'all' target
-all: Template_proj.elf
+# Linker Flags
+LDFLAGS = $(COMMON_FLAGS) \
+          -T"$(LINKER_DIR)/STM32G070RBTX_FLASH.ld" \
+          --specs=nosys.specs \
+          -Wl,--gc-sections \
+          -static \
+          --specs=nano.specs \
+          -Wl,--start-group \
+          -lc \
+          -lm \
+          -Wl,--end-group
 
-bin: Template_proj.elf
-	arm-none-eabi-objcopy -O binary Template_proj.elf Template_proj.bin 
+###############################################################################
+# Build Targets
+###############################################################################
 
+.PHONY: all bin test flash clean
 
+# Default target
+all: $(TARGET)
 
-.PHONY: test 
+# Create binary
+bin: $(BINARY)
+
+# Test target
 test: $(TEST_OBJ) $(OBJS_s)
-	$(CC) $^ -o Template_proj.elf  -mcpu=cortex-m0plus -T"./CMSIS/STM32G070RBTX_FLASH.ld" \
-	--specs=nosys.specs -Wl,--gc-sections -static --specs=nano.specs \
-	-mthumb -Wl,--start-group -lc -lm -Wl,--end-group
-	@echo 'Finished building target: $@'
-	@echo ' '
-$(TEST_OBJ): ./Build/%.o: ./test/%.c
-	echo "called "
-	$(CC) $(CFLAGS) -c $< -o $@
-# target 
-Template_proj.elf : $(OBJS) $(OBJS_s)
-	$(CC) $^ -o $@ -mcpu=cortex-m0plus -T"./CMSIS/STM32G070RBTX_FLASH.ld" \
-	--specs=nosys.specs -Wl,--gc-sections -static --specs=nano.specs \
-	-mthumb -Wl,--start-group -lc -lm -Wl,--end-group
-	@echo 'Finished building target: $@'
-	@echo ' '
-Flash: bin
-	st-flash --reset write Template_proj.bin 0x8000000
+	$(CC) $^ -o $(TARGET) $(LDFLAGS)
+	@echo 'Finished building test target'
 
+# Flash to device
+flash: $(BINARY)
+	$(FLASH_TOOL) --reset write $(BINARY) 0x8000000
 
-# Rule to build object files from source files
-$(OBJS): ./Build/%.o: ./Src/%.c
-	$(CC) $(CFLAGS) -c $< -o $@
-
-# Rule to build object files from assembly files
-$(OBJS_s): $(S_SRCS)
-	arm-none-eabi-gcc -mcpu=cortex-m0plus -g3 -DDEBUG -c -x assembler-with-cpp -MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" --specs=nano.specs -mfloat-abi=soft -mthumb -o "$@" "$<"
-
-
-# Phony target to prevent conflicts with files named 'clean'
-.PHONY: clean
-
+# Clean build artifacts
 clean:
-	rm -f $(OBJS) $(C_DEPS) $(OBJS_s) Template_proj.elf
+	rm -f $(OBJS) $(C_DEPS) $(OBJS_s) $(TEST_OBJ) $(TARGET) $(BINARY)
+	@echo 'Clean complete'
+
+###############################################################################
+# Build Rules
+###############################################################################
+
+# Main executable
+$(TARGET): $(OBJS) $(OBJS_s)
+	$(CC) $^ -o $@ $(LDFLAGS)
+	@echo 'Finished building target: $@'
+
+# Binary file
+$(BINARY): $(TARGET)
+	$(OBJCOPY) -O binary $< $@
+	@echo 'Created binary: $@'
+
+# Build C source files
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Build test files
+$(BUILD_DIR)/%.o: $(TEST_DIR)/%.c | $(BUILD_DIR)
+	@echo "Building test file: $<"
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Build assembly files
+$(BUILD_DIR)/%.o: $(STARTUP_DIR)/%.s | $(BUILD_DIR)
+	$(CC) $(ASFLAGS) -o $@ $<
+
+# Create build directory
+$(BUILD_DIR):
+	mkdir -p $(BUILD_DIR)
+
+###############################################################################
+# Include Dependencies
+###############################################################################
+
+-include $(C_DEPS)

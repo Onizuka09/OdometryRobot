@@ -11,4 +11,6 @@
 void delay_ms(uint32_t d);
 
 void InitSystick(); 
+uint32_t get_current_time_ms(void) ;
+
 #endif /* DELAY_H_ */

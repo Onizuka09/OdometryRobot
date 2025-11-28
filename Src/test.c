@@ -25,26 +25,3 @@ int test_encoder(TIM_TypeDef* tim)
 {
     return tim->CNT;
 }
-void test_motor(Directions d, int speed)
-{
-    int x = speed;
-    switch (d)
-    {
-    case Forward:
-        forward(x, x);
-        break;
-    case Backward:
-        backward(x, x);
-        break;
-    case Left:
-        left(x, x);
-        break;
-    case Right:
-        right(x, x);
-        break;
-    default:
-        break;
-    }
-    delay_ms(5000);
-    stop();
-}

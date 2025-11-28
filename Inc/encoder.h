@@ -15,4 +15,7 @@ void Timer15_set_dutyCycle_ch2(uint8_t speed);
 void timer1_LeftEncoder_confifg();
 
 void timer3_RightEncoder_confifg();
+uint16_t timer1_LeftEncoder_Read(); 
+
+uint16_t timer3_RightEncoder_Read(); 
 #endif

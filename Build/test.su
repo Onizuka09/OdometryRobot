@@ -1,3 +1,2 @@
 Src/test.c:3:6:pwm_test	16	static
 Src/test.c:24:5:test_encoder	16	static
-Src/test.c:28:6:test_motor	24	static

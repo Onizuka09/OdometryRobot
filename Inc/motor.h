@@ -1,6 +1,6 @@
 #ifndef MOTOR_H_ 
 #define MOTOR_H_
-#include "timer.h"
+#include "encoder.h"
 #include "GPIO.h"
 #include <stdint.h>
 #define IN1_MR PIN_3
@@ -21,17 +21,21 @@
 #define ENB_ML_port GPIOC 
 
 
-typedef enum
-{
-    Forward,
-    Backward, // Fixed typo: "Backword" to "Backward"
-    Left,
-    Right
-} Directions;
-void init_motor(int PSC,int  ARR);
-void forward(uint8_t speedM1, uint8_t speedM2);
-void backward(uint8_t speedM1, uint8_t speedM2);
-void left(uint8_t speedM1, uint8_t speedM2) ;
-void right(uint8_t speedM1, uint8_t speedM2);
-void stop();
+
+
+
+/**
+ * @brief initializes motor both left and right 
+ * 
+ */
+ 
+void init_motors();
+/**
+ * @brief controlls motors both left and right (speed  & direction) 
+ * @param speedML: takes speed of left motor (can be negative) 
+ * @param speedMR: takes speed of right  motor (can be negative) 
+ */
+ 
+void run_motors(int8_t speedML, int8_t speedMR);
+
 #endif

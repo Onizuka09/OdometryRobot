@@ -1,0 +1,119 @@
+#include "odometry.h"
+#include "encoder.h"
+#include <math.h> 
+volatile uint16_t prev_left_encoder = 0;
+volatile uint16_t prev_right_encoder = 0;
+volatile uint16_t current_left  = 0 ; 
+volatile uint16_t current_right= 0 ; 
+volatile int16_t left_delta = 0 ; 
+volatile int16_t right_delta = 0 ; 
+float total_angle_rad = 0 ; 
+float total_left_distance = 0;
+float total_right_distance = 0;
+float total_distance = 0 , current_distance = 0 ; 
+float theta_deg = 0 , theta_rad= 0 ; 
+
+static float rad_to_deg(double x); 
+void OdoInit(OdometryTypedef* odo) {
+    odo->x = 0;
+    odo->y = 0;
+    odo->angle_rad = 0;
+    odo->angle_deg = 0;
+    odo->v= 0;
+    odo->w = 0;
+    odo->left_speed = 0;
+    odo->right_speed = 0;
+    odo->total_distance = 0 ; 
+    odo->current_distance = 0 ; 
+    prev_left_encoder = 0;
+    prev_right_encoder = 0;
+    total_left_distance = 0;
+    total_right_distance = 0;
+}
+
+void OdoUpdate(OdometryTypedef* odo, float dt) {
+
+    // Read current encoder values with rollover handling
+     current_left = timer1_LeftEncoder_Read();
+     current_right = timer3_RightEncoder_Read();
+    
+    // Calculate delta with proper rollover handling
+    left_delta = (current_left - prev_left_encoder);
+    right_delta = (current_right - prev_right_encoder);
+    
+    // Enhanced rollover detection 
+    if (left_delta > 30000){ // backward movement 
+         left_delta -= 65536;
+    }else if (left_delta < -30000){ // forward movement 
+        left_delta += 65536;
+    }
+
+    if (right_delta > 30000) {
+        right_delta -= 65536;
+    }else if (right_delta < -30000){
+        right_delta += 65536;
+    }     
+   
+    // Store previous values
+    prev_left_encoder = current_left;
+    prev_right_encoder = current_right;
+    // ==== distace calculation  ==================
+    // Calculate distances
+    float left_distance = left_delta * DISTANCE_PER_PULSE_CM;
+    float right_distance = right_delta * DISTANCE_PER_PULSE_CM;
+    
+    // Update cumulative distances
+    total_left_distance += left_distance;
+    total_right_distance += right_distance;
+    
+    // Calculate displacements
+    current_distance = (left_distance + right_distance) / 2.0f ;
+    total_distance += current_distance;
+    // =========================== end distance =============================== 
+
+    // ====== calculation of cooridnates (x,y) ========================== 
+    odo->x += current_distance * cos(odo->angle_rad);
+    odo->y += current_distance *sin(odo->angle_rad);
+    // ====== end calculation of cooridnates (x,y) ========================== 
+
+    // ====== calculation of angle ========================== 
+    float angle_theta = (right_distance - left_distance ) / (WHEELBASE_CM) ; //  to make evrything in CM       
+    odo->angle_rad += angle_theta ; 
+    // normalize angle 
+    while (odo->angle_rad>PI)
+	{
+		odo->angle_rad -= 2*PI;
+	}
+	while (odo->angle_rad<-PI)
+	{
+		odo->angle_rad += 2*PI;
+	}
+    odo->angle_deg = rad_to_deg(odo->angle_rad) ;
+    // ====== END calculation of angle ========================== 
+    // ====== calculation of sped  ========================== 
+    float  vL= (left_distance * 1000/ PERIOD)  ;  // cm/s
+    float vR = (right_distance * 1000/ PERIOD)  ; // cm/s 
+    odo->w =  (angle_theta * 1000/ PERIOD)  ; // rad/s 
+	// float right_speed = (right_encoder_speed + left_encoder_speed)/2 + odo->w * WHEELBASE_CM/2;
+	// float left_speed = (right_encoder_speed + left_encoder_speed)/2 - odo->w * WHEELBASE_CM/2;
+    odo->v = (vL + vR )/ 2 ;
+
+        // ====== END calculation of sped  ========================== 
+
+    odo->total_distance = total_distance ; 
+    odo->current_distance = current_distance ; 
+    
+}
+
+void OdoResetPosition(OdometryTypedef* odo) {
+    odo->x = 0;
+    odo->y = 0;
+    odo->angle_deg = 0;
+    odo->angle_rad = 0;
+    total_left_distance = 0;
+    total_right_distance = 0;
+}
+static float rad_to_deg(double x)
+{
+	return (x*360/(2*PI));
+}

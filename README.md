@@ -24,7 +24,7 @@ Avec cette série de mouvements, le robot crée un chemin. Le système est divis
   - Accéléromètre
   - Gyroscope
 - **Microcontrôleur** :
-  - Le STM32F4 est utilisé comme MCU principal.
+  - Le STM32G0 est utilisé comme MCU principal.
   - Contrôle la vitesse et l'orientation des moteurs à l'aide de PWM et d'un minuteur.
   - Reçoit des retours de position via les encodeurs.
 

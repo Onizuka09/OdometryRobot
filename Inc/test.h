@@ -4,5 +4,4 @@
 
 void pwm_test() ; 
 int test_encoder(TIM_TypeDef* tim) ;
-void test_motor(Directions d, int speed) ; 
 #endif 
