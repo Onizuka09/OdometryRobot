@@ -1,5 +1,7 @@
 #ifndef PWM_H_ 
 #define PWM_H_ 
+#define MAX_PWM_SPEED 100 
+#define MIN_PWM_SPEED 10
 void PWM_TIM15_CH1_Config(); 
 void PWM_TIM15_CH2_Config(); 
 void PWM_TIM15_CH1_Start(); 

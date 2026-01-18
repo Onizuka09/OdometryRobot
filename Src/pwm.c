@@ -1,6 +1,5 @@
 #include <stm32g070xx.h>
 #include "pwm.h"
-
 static void calculate_pin(uint8_t *pin, uint8_t *index)
 {
 	if (*pin < 8)
@@ -45,8 +44,8 @@ void PWM_TIM15_CH1_Config()
     TIM15->CR1 &= ~TIM_CR1_CEN; // Disable timer
 
     // 16kHz PWM configuration:
-    TIM15->PSC = 15; // No prescaler
-    TIM15->ARR = 99; // 10 khz
+    TIM15->PSC = 16 - 1 ; //  frequency 1 MHz 
+    TIM15->ARR = MAX_PWM_SPEED - 1 ; // PWM frequency :10 khz 
 
     TIM15->CNT = 0; // Reset counter
 

@@ -39,7 +39,7 @@ LINKER_DIR    = ./CMSIS
 C_SRCS = \
 	$(SRC_DIR)/main.c \
 	$(SRC_DIR)/pwm.c \
-	$(SRC_DIR)/led.c \
+	$(SRC_DIR)/bsp.c \
 	$(SRC_DIR)/syscalls.c \
 	$(SRC_DIR)/sysmem.c \
 	$(SRC_DIR)/system_stm32g0xx.c \
@@ -52,6 +52,8 @@ C_SRCS = \
 	$(SRC_DIR)/test.c \
 	$(SRC_DIR)/odometry.c \
 	$(SRC_DIR)/Debug_dirver.c \
+	$(SRC_DIR)/navigation.c \
+	$(SRC_DIR)/trapezoid.c \
 	$(SRC_DIR)/system_clk.c
 
 # Assembly Source Files
@@ -79,13 +81,13 @@ C_DEPS = $(OBJS:.o=.d)
 # Common Flags
 COMMON_FLAGS = -mcpu=$(MCU) -mthumb -mfloat-abi=$(FLOAT_ABI)
 
+#          -O0 \
 # Compiler Flags
 CFLAGS = $(COMMON_FLAGS) \
          -std=gnu11 \
          -g3 \
          -DDEBUG \
          -DSTM32G070xx \
-         -O0 \
          -ffunction-sections \
          -fdata-sections \
          -Wall \

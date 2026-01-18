@@ -1,8 +1,10 @@
 #include "motor.h"
 #include "pwm.h"
-
-
-
+#include <math.h>
+float pwmMl = 0;
+float pwmMr = 0;
+volatile int8_t pwml_dbg = 0;
+volatile int8_t pwmr_dbg = 0;
 void init_motors()
 {
 
@@ -18,16 +20,74 @@ void init_motors()
     PWM_TIM15_CH2_SetDutyCyle(0);
 }
 
-
-void run_motors(int8_t speedML, int8_t speedMR)
+void run_motors(Command_type cmd, float cmdML, float cmdMR)
 {
-    GPIO_PIN_WRITE(GPIOB, IN3_ML, 0);
-    GPIO_PIN_WRITE(GPIOB, IN4_ML, 1);
+    if (cmd == POSITION_CMD)
+    {
+        // convert cmd from cm/s to pwm value
+        pwmMl = (cmdML / MAX_VELOCITY) * MAX_PWM_SPEED;
+        pwmMr = (cmdMR / MAX_VELOCITY) * MAX_PWM_SPEED;
+        // If the command is positive, ensure it is at least MIN_PWM
+        // if (pwmMl > 0.1f)  pwmMl += MIN_PWM_SPEED ;
+        // if (pwmMl < -0.1f) pwmMl -= MIN_PWM_SPEED;
 
-    GPIO_PIN_WRITE(GPIOB, IN1_MR, 1);
-    GPIO_PIN_WRITE(GPIOB, IN2_MR, 0);
+        // if (pwmMr > 0.1f)  pwmMr += MIN_PWM_SPEED ;
+        // if (pwmMr < -0.1f) pwmMr -= MIN_PWM_SPEED;
+    }
+    else if (cmd == ANGULAR_CMD)
+    {
+        pwmMl = (cmdML / MAX_ANGULAR_VEL) * MAX_PWM_SPEED;
+        pwmMr = (cmdMR / MAX_ANGULAR_VEL) * MAX_PWM_SPEED;
+    }
+    else {
+        __NOP();
+    }
+    // clamping
+    if (pwmMl > MAX_PWM_SPEED)
+        pwmMl = MAX_PWM_SPEED;
+    if (pwmMl < -MAX_PWM_SPEED)
+        pwmMl = -MAX_PWM_SPEED;
 
-    PWM_TIM15_CH1_SetDutyCyle(speedML);
-    PWM_TIM15_CH2_SetDutyCyle(speedMR);
+    if (pwmMr > MAX_PWM_SPEED)
+        pwmMr = MAX_PWM_SPEED;
+    if (pwmMr < -MAX_PWM_SPEED)
+        pwmMr = -MAX_PWM_SPEED;
+    
+    command_motors(pwmMl, pwmMr);
 }
+void command_motors(int8_t pwmL, int8_t pwmR)
+{
 
+    pwml_dbg = pwmL;
+    pwmr_dbg = pwmR;
+    if (pwmL > 0)
+    {
+        GPIO_PIN_WRITE(GPIOB, IN3_ML, 0);
+        GPIO_PIN_WRITE(GPIOB, IN4_ML, 1);
+    }
+    else
+    { // motor bech iwa5er
+        GPIO_PIN_WRITE(GPIOB, IN3_ML, 1);
+        GPIO_PIN_WRITE(GPIOB, IN4_ML, 0);
+        pwmL= pwmL * -1;
+    }
+
+    if (pwmR > 0)
+    {
+        GPIO_PIN_WRITE(GPIOB, IN1_MR, 1);
+        GPIO_PIN_WRITE(GPIOB, IN2_MR, 0);
+    }
+    else
+    {
+        GPIO_PIN_WRITE(GPIOB, IN1_MR, 0);
+        GPIO_PIN_WRITE(GPIOB, IN2_MR, 1);
+        pwmR= pwmR * -1;
+
+    }
+    // el compiler yetmanyek aliya mahbech ye9blha fuck you gcc 
+    // pwmL=abs(pwmL);
+    // pwmR=abs(pwmR);
+
+    PWM_TIM15_CH1_SetDutyCyle(pwmL);
+    PWM_TIM15_CH2_SetDutyCyle(pwmR);
+}

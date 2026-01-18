@@ -6,6 +6,12 @@
             "type": "shell",
             "command": "make all",
             "problemMatcher":["$gcc"]
+        },
+        {
+            "label": "Flash Project",
+            "type": "shell",
+            "command": "make flash",
+            "problemMatcher":["$gcc"]
         }
     ]
 }
