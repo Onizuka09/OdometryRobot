@@ -1,6 +1,7 @@
 #include "odometry.h"
 #include "encoder.h"
 #include <math.h> 
+#define  MAX_AVG_SPEED_COUNT 20
 volatile uint16_t prev_left_encoder = 0;
 volatile uint16_t prev_right_encoder = 0;
 volatile uint16_t current_left  = 0 ; 
@@ -13,6 +14,10 @@ float total_right_distance = 0;
 float total_distance = 0 , current_distance = 0 ; 
 float theta_deg = 0 , theta_rad= 0 ; 
 
+float avg_linear[MAX_AVG_SPEED_COUNT] ; 
+float avg_angular[MAX_AVG_SPEED_COUNT]; 
+int arr_index_avg = 0 ;
+int max_mumber_reads = 0 ; 
 static float rad_to_deg(double x); 
 void OdoInit(OdometryTypedef* odo) {
     odo->x = 0;
@@ -29,6 +34,10 @@ void OdoInit(OdometryTypedef* odo) {
     prev_right_encoder = 0;
     total_left_distance = 0;
     total_right_distance = 0;
+    for (int i = 0 ; i < MAX_AVG_SPEED_COUNT; i++){
+        avg_angular[i] = 0 ; 
+        avg_angular[i] = 0 ; 
+    }
 }
 
 void OdoUpdate(OdometryTypedef* odo, float dt) {
@@ -91,14 +100,27 @@ void OdoUpdate(OdometryTypedef* odo, float dt) {
     odo->angle_deg = rad_to_deg(odo->angle_rad) ;
     // ====== END calculation of angle ========================== 
     // ====== calculation of sped  ========================== 
-    float  vL= (left_distance * 1000/ PERIOD)  ;  // cm/s
-    float vR = (right_distance * 1000/ PERIOD)  ; // cm/s 
-    odo->w =  (angle_theta * 1000/ PERIOD)  ; // rad/s 
+    float  vL= (left_distance / dt)  ;  // cm/s
+    float vR = (right_distance / dt)  ; // cm/s 
+    float w =  (angle_theta / dt)  ; // rad/s 
 	// float right_speed = (right_encoder_speed + left_encoder_speed)/2 + odo->w * WHEELBASE_CM/2;
 	// float left_speed = (right_encoder_speed + left_encoder_speed)/2 - odo->w * WHEELBASE_CM/2;
-    odo->v = (vL + vR )/ 2 ;
+    
+    float v = (vL + vR )/ 2 ;
+    avg_linear[arr_index_avg] =v ; 
+    avg_angular[arr_index_avg] =w ; 
 
-        // ====== END calculation of sped  ========================== 
+    arr_index_avg = (arr_index_avg + 1 ) % MAX_AVG_SPEED_COUNT ; 
+    float tmpv = 0 ; 
+    float tmpw = 0 ; 
+    if (max_mumber_reads < MAX_AVG_SPEED_COUNT ) max_mumber_reads ++; 
+    for (int i = 0 ; i < max_mumber_reads ; i++){ 
+        tmpv += avg_linear[i] ;
+        tmpw += avg_angular[i] ;
+    }
+    odo->v =(float) (tmpv / max_mumber_reads) ; 
+    odo->w =(float) (tmpw / max_mumber_reads) ; 
+    // ====== END calculation of sped  ========================== 
 
     odo->total_distance = total_distance ; 
     odo->current_distance = current_distance ; 

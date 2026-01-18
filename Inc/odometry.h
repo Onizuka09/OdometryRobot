@@ -1,7 +1,7 @@
 #ifndef _ODOMETRY_H__
 #define _ODOMETRY_H__
 #include <stdint.h> 
-#define WHEELBASE_CM 21 
+#define WHEELBASE_CM 23.4f//21 
 #define PI                    3.14159265358979323846f  
 #define WHEEL_DIAMETER_CM 6.5f      
 #define WHEEL_RADIUS_CM (WHEEL_DIAMETER_CM / 2.0f)      
@@ -9,6 +9,9 @@
 #define PULSE_PER_REVOLUTION 224 
 #define PRECISION 4 
 #define DISTANCE_PER_PULSE_CM   ((PI * WHEEL_DIAMETER_CM )/(PULSE_PER_REVOLUTION* PRECISION))
+
+#define DEG2RAD(x) ((x) * PI / 180.0f)
+
 #define PERIOD 10 // period to call the odometry update function
 // #define MM_PER_COUNT (2 * 31415 * WHEEL_RADIUS_MM / PULSE_PER_REVOLUTION) // 2πr/cpr
 
