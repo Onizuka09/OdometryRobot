@@ -51,9 +51,11 @@ int main(void)
             // command_motors(MIN_PWM_SPEED, MIN_PWM_SPEED);
             // move_angular_speed(5, &odo);
             position_control(100, &odo);
-
+            delay_ms(10);     
             angle_control(DEG2RAD(180),&odo);
+            delay_ms(10);     
             position_control(100, &odo);
+            delay_ms(10);     
 
             btn_state = 0;
         }

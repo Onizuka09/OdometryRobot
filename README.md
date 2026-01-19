@@ -1,46 +1,120 @@
-# RobotMechi: Un robot autonome
+# OdometryRobot
 
-RobotMechi est un robot autonome qui interprète une série de commandes et suit un chemin spécifié. Voici une description détaillée de ses composants et fonctionnalités.
+## Project Overview
 
-## Architecture du système 
-![alt text](image.png)
+**OdometryRobot** is a mobile robotics project focused on **precise motion control and odometry estimation** using a **bare-metal STM32 microcontroller**.  
+The robot executes a sequence of high-level movement commands (distance and angle) and reconstructs its trajectory using encoder-based odometry and inertial feedback.
 
-## Exemple de commande d'entrée
-
-bash
-forward : 100m
-Right : 90°
-forward : 100m
-Right   :90°
-forward :100m
-Left :90°
-
-
-Avec cette série de mouvements, le robot crée un chemin. Le système est divisé en deux parties principales :
-
-### Matériel
-- **Moteurs avec encodeurs** : Pour contrôler le mouvement et mesurer la position.
-- **Capteurs** :
-  - Accéléromètre
-  - Gyroscope
-- **Microcontrôleur** :
-  - Le STM32G0 est utilisé comme MCU principal.
-  - Contrôle la vitesse et l'orientation des moteurs à l'aide de PWM et d'un minuteur.
-  - Reçoit des retours de position via les encodeurs.
-
-### Système de contrôle
-- **Boucle de rétroaction fermée** : Garantit la vitesse et l'orientation correctes à l'aide des données de l'accéléromètre et du gyroscope.
+The system is designed with a **clear separation between low-level real-time control** (running on the STM32) and **high-level motion commands**.
 
 ---
+## Example of Input Commands
 
-## Communication entre App et PathFollower
+The robot receives a sequence of movement instructions such as:
 
-L'application envoie la série de commandes, et le système PathFollower les reçoit. Les options de communication incluent :
+```text
+Forward : 100 m
+Right   : 90°
+Forward : 100 m
+Right   : 90°
+Forward : 100 m
+Left    : 90°
+```
+Using this sequence, the robot generates a trajectory and continuously estimates its position, orientation, and velocity through odometry.
 
-- **UART** : Le MCU est connecté à l'ordinateur portable via un port série.
-- **MQTT** : L'application publie les commandes au format JSON sur un sujet. Le PathFollower s'abonne à ce sujet pour recevoir les commandes.
+## System Architecture
 
----
+The system is divided into two main parts: Hardware and Control System.
+### Hardware
+
+Motors with encoders
+
+  - Provide wheel rotation feedback.
+
+  - Used for velocity and distance estimation.
+
+### Microcontroller
+
+STM32G0 as the main MCU.
+
+  - Fully bare-metal implementation (no HAL, no RTOS).
+
+  - Responsible for real-time motor control, odometry computation, and communication.
+
+  - Avec cette série de mouvements, le robot crée un chemin. Le système est divisé en deux parties principales :
+
+### STM32 Bare-Metal Software Design
+All drivers and control modules are implemented from scratch in bare-metal C:
+
+Low-Level Drivers
+
+Encoder driver
+
+Quadrature decoding using hardware timers.
+
+Measures wheel speed and traveled distance.
+
+UART driver
+
+Bare-metal UART for command reception and data transmission.
+
+Clock and system configuration
+
+RCC, system clock, and peripheral configuration without HAL.
+
+Motor control driver
+
+PWM generation using timers.
+
+Direction and speed control of DC motors.
+
+Control Algorithms
+
+Position PID
+
+Distance PID controller.
+
+Linear velocity PID controller.
+
+Angular PID
+
+Angle PID controller.
+
+Angular velocity PI controller.
+
+These controllers ensure accurate trajectory tracking and smooth motion.
+
+Odometry Module
+
+The odometry module computes:
+
+Linear velocity
+
+Angular velocity
+
+Robot position (x, y)
+
+Robot orientation (θ)
+
+Using:
+
+Wheel encoder data
+
+Inertial measurements (accelerometer and gyroscope)
+
+Control System
+
+Closed-loop feedback control
+
+Combines encoder feedback and IMU data.
+
+Ensures accurate speed, distance, and angle tracking.
+
+Trajectory execution
+
+High-level commands (distance and angle) are converted into motor setpoints.
+
+Real-time control loops run entirely on the STM32.
 
 ## PINOUTs 
 ### LED
@@ -68,6 +142,9 @@ right:
 - PB8 : UART3_Tx 
 - PB9 : UART3_Rx 
 
+# UART2: UART Communication
+- PA2 : UART2_Tx 
+- PA3 : UART2_Rx 
 ## Wiring  Encoders
 
 - RED : motor+
@@ -76,15 +153,7 @@ right:
 - blue: Vcc 
 - Yellow: OUTA 
 - White: OUTB 
-```c
-const float wheelRadius = 6.7/2; // Radius of the wheel in meters (e.g., 5 cm)
-// for full rotation the encoder does 13 puleses 
-// Gear box  is 34 : 1 ratio 
-const int pulsesPerRevolution = 34 * 13 ; // Number of pulses per revolution of the encoder
 
-// Distance per pulse
-const float distancePerPulse = (2 * 3.14159 * wheelRadius) / pulsesPerRevolution;
-```
 ## PWM Frequencies for Motor control 
 Recommended PWM Frequencies for DC Motors
 Motor Type	Ideal Frequency Range	Why?
