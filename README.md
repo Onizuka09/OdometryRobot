@@ -7,7 +7,6 @@
 
 The robot executes a sequence of high-level movement commands (distance and angle) and reconstructs its trajectory using **encoder-based odometry** .
 
-
 ---
 
 ## Example of Input Commands
@@ -82,6 +81,8 @@ All drivers and control modules are implemented **from scratch** in bare-metal C
 ### Position and Angular PID Control
 
 The robot utilizes a **dual cascaded PID architecture**, featuring separate control loops for **linear position** and **angular orientation**. This structure improves stability, smoothness, and tracking accuracy.
+
+![alt text](Imgs/postion_control_pid_system_arch.png)
 
 #### Position Control Cascade
 
