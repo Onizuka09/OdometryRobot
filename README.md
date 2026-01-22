@@ -1,13 +1,15 @@
 # OdometryRobot
+![alt text](Imgs/robot.png)
 
 ## Project Overview
 
-**OdometryRobot** is a mobile robotics project focused on **precise motion control and odometry estimation** using a **bare-metal STM32 microcontroller**.  
-The robot executes a sequence of high-level movement commands (distance and angle) and reconstructs its trajectory using encoder-based odometry and inertial feedback.
+**OdometryRobot** is a mobile robotics project focused on **precise motion control and odometry estimation** using a **bare-metal STM32 microcontroller**.
 
-The system is designed with a **clear separation between low-level real-time control** (running on the STM32) and **high-level motion commands**.
+The robot executes a sequence of high-level movement commands (distance and angle) and reconstructs its trajectory using **encoder-based odometry** .
+
 
 ---
+
 ## Example of Input Commands
 
 The robot receives a sequence of movement instructions such as:
@@ -20,148 +22,230 @@ Right   : 90°
 Forward : 100 m
 Left    : 90°
 ```
-Using this sequence, the robot generates a trajectory and continuously estimates its position, orientation, and velocity through odometry.
+
+Using this sequence, the robot generates a trajectory and continuously estimates its **position**, **orientation**, and **velocity** through odometry.
+
+---
 
 ## System Architecture
 
-The system is divided into two main parts: Hardware and Control System.
+The system is divided into two main parts: **Hardware** and **Control System**.
+
 ### Hardware
 
-Motors with encoders
+#### Motors with Encoders
 
-  - Provide wheel rotation feedback.
+* Provide wheel rotation feedback
+* Used for velocity and distance estimation
 
-  - Used for velocity and distance estimation.
+#### Microcontroller
 
-### Microcontroller
+* **STM32G0** as the main MCU
+* Fully **bare-metal implementation** (no HAL, no RTOS)
+* Responsible for:
 
-STM32G0 as the main MCU.
+  * Real-time motor control
+  * Odometry computation
+  * Control system
 
-  - Fully bare-metal implementation (no HAL, no RTOS).
+---
 
-  - Responsible for real-time motor control, odometry computation, and communication.
+## STM32 Bare-Metal Software Design
 
-  - Avec cette série de mouvements, le robot crée un chemin. Le système est divisé en deux parties principales :
+All drivers and control modules are implemented **from scratch** in bare-metal C.
 
-### STM32 Bare-Metal Software Design
-All drivers and control modules are implemented from scratch in bare-metal C:
+### Low-Level Drivers
 
-Low-Level Drivers
+#### Encoder Driver
 
-Encoder driver
+* Quadrature decoding using hardware timers (encoder mode)
+* Measures wheel speed and traveled distance
 
-Quadrature decoding using hardware timers.
+#### UART Driver
 
-Measures wheel speed and traveled distance.
+* Bare-metal UART implementation
+* Used for command reception and data transmission
 
-UART driver
+#### Clock and System Configuration
 
-Bare-metal UART for command reception and data transmission.
+* RCC and system clock configuration
+* Peripheral initialization without HAL
 
-Clock and system configuration
+#### Motor Control Driver
 
-RCC, system clock, and peripheral configuration without HAL.
+* PWM generation using timers
+* Direction and speed control of DC motors
 
-Motor control driver
+---
+## Control Algorithms
 
-PWM generation using timers.
+### Position and Angular PID Control
 
-Direction and speed control of DC motors.
+The robot utilizes a **dual cascaded PID architecture**, featuring separate control loops for **linear position** and **angular orientation**. This structure improves stability, smoothness, and tracking accuracy.
 
-Control Algorithms
+#### Position Control Cascade
 
-Position PID
+* **Outer Loop (Position PID)**:
 
-Distance PID controller.
+  * Controls the absolute target position (distance)
+  * Computes the desired linear velocity setpoint
 
-Linear velocity PID controller.
+* **Inner Loop (Linear Velocity PID)**:
 
-Angular PID
+  * Regulates the wheel-driven linear velocity
+  * Ensures smooth motion and accurate distance tracking
 
-Angle PID controller.
+This cascade structure allows the robot to reach target distances precisely while avoiding abrupt speed changes.
 
-Angular velocity PI controller.
+#### Angular Control Cascade
 
-These controllers ensure accurate trajectory tracking and smooth motion.
+* **Outer Loop (Angle PID)**:
 
-Odometry Module
+  * Maintains the desired heading angle
+  * Generates an angular velocity reference
 
-The odometry module computes:
+* **Inner Loop (Angular Velocity PI)**:
 
-Linear velocity
+  * Regulates rotational speed
+  * Minimizes oscillations and overshoot during turns
 
-Angular velocity
+This approach provides stable and smooth rotational motion, especially during sharp angle changes.
 
-Robot position (x, y)
+---
 
-Robot orientation (θ)
+## Odometry Module
 
-Using:
+The odometry module is responsible for estimating the robot’s motion state in real time. It computes:
 
-Wheel encoder data
+* Linear velocity
+* Angular velocity
+* Robot position (**x, y** coordinates)
+* Robot orientation (angle in **radians** and **degrees**)
+* Total distance traveled
 
-Inertial measurements (accelerometer and gyroscope)
+These estimates are derived from:
 
-Control System
+* Wheel encoder measurements
+* Inertial data (accelerometer and gyroscope)
 
-Closed-loop feedback control
+---
 
-Combines encoder feedback and IMU data.
+## Velocity Ramping System
 
-Ensures accurate speed, distance, and angle tracking.
+A critical aspect of motion control is the implementation of **velocity ramping** for both **linear** and **angular** velocities. This system ensures smooth acceleration and deceleration, which is essential for the following reasons:
 
-Trajectory execution
+* **Prevents wheel slipping**: Sudden acceleration can cause loss of traction, especially on smooth surfaces
+* **Reduces mechanical stress**: Gradual velocity changes reduce stress on motors, gears, and mechanical components
+* **Improves energy efficiency**: Smooth acceleration profiles consume less power than abrupt movements
+* **Enhances system stability**: Prevents overshoot and oscillations in the control loops
+* **Increases position accuracy**: Smooth transitions lead to more precise trajectory tracking
 
-High-level commands (distance and angle) are converted into motor setpoints.
+### Ramping Strategy
 
-Real-time control loops run entirely on the STM32.
+The ramping system is implemented for both **linear velocity** (`odo.v`) and **angular velocity** (`odo.w`) using a two-stage approach:
 
-## PINOUTs 
+1. **Ramp-Limited Setpoint**
+
+   * A gradually increasing velocity limit
+   * Prevents sudden jumps in commanded speed
+
+2. **Target Capping**
+
+   * Ensures commanded velocities never exceed physical or safety constraints
+
+### Achieved Results
+
+The velocity ramping system provides:
+
+Linear Velocity Ramping Performance:
+![psotion_control](./Imgs/pid_pos_100.png)
+
+Angular Velocity Ramping Performance:
+![angle_control](./Imgs/best_angle_control.png)
+
+
+* Smooth acceleration from rest to target velocity
+* Controlled deceleration when approaching target positions
+* Elimination of velocity spikes that could destabilize the control system
+* Consistent performance across both linear and angular motion
+
+> for visualization i used MCUViewer [link](http://github.com/klonyyy/MCUViewer)
+
+
+
+---
+
+## Pinout
+
 ### LED
-- Internal LED  PA5 
-### PONT-H 
-- IN1 PB3  (D3)	
-- IN2 PB5  (D4)	
-- IN3 PB4  (D5)
-- IN4 PB1  (A3)
 
-- ENA Motor Left: PC1  PWM_timaer15_ch1   
-- ENB Motor Right:  PC2  PWM_timer15_ch2  
+* Internal LED: **PA5**
 
-left:  
+### H-Bridge (Motor Driver) TB6612FNG
 
-- EconderA OUTA : PA8 (D7) tim1_ch1 (encoder mode ) 
-- EncoderA OUTB : PA9 (D8) tim1_ch2 (encoder mode )
+| Signal | Pin      | Note            |
+| ------ | -------- | --------------- |
+| AIN1    | PB3 (D3) | Motor direction |
+| AIN2    | PB5 (D4) | Motor direction |
+| BIN1    | PB4 (D5) | Motor direction |
+| BIN2    | PB1 (A3) | Motor direction |
 
-right: 
+| Enable            | Pin | Timer           |
+| ----------------- | --- | --------------- |
+| PWMA (Left Motor)  | PC1 | TIM15_CH1 (PWM) |
+| PWMB (Right Motor) | PC2 | TIM15_CH2 (PWM) |
 
-- EconderB OUTA : PC7 (D9) TIM3_ch2 (encoder mode )
-- EncoderB OUTB : PC6 (x) TIM3_ch1 (encoder mode )
+- Standby pin shoud be enabled 
+- VM: main power (4.5 , 13.5V ) 
+- VCC: power for the internal logic circuiuts (2.7 , 5V ) mainly 5V
 
-# UART3: UART Communication with ESP32 
-- PB8 : UART3_Tx 
-- PB9 : UART3_Rx 
+> Current PWM frequency configuration is 10Khz 
+---
 
-# UART2: UART Communication
-- PA2 : UART2_Tx 
-- PA3 : UART2_Rx 
-## Wiring  Encoders
+### Encoders
 
-- RED : motor+
-- black: motor-
-- green: GND
-- blue: Vcc 
-- Yellow: OUTA 
-- White: OUTB 
+#### Left Encoder
 
-## PWM Frequencies for Motor control 
-Recommended PWM Frequencies for DC Motors
-Motor Type	Ideal Frequency Range	Why?
-Small Brushed DC (e.g., hobby motors)	5kHz - 20kHz	Above audible range, good torque control
-Large Brushed DC	500Hz - 5kHz	Lower switching losses in power drivers
-Coreless Motors	20kHz - 50kHz	Avoids coil resonance frequencies
+* OUTA: **PA8 (D7)** – TIM1_CH1 (Encoder mode)
+* OUTB: **PA9 (D8)** – TIM1_CH2 (Encoder mode)
+
+#### Right Encoder
+
+* OUTA: **PC7 (D9)** – TIM3_CH2 (Encoder mode)
+* OUTB: **PC6** – TIM3_CH1 (Encoder mode)
+
+---
+
+### UART Communication
+
+#### UART3 (ESP32 Communication)
+
+* TX: **PB8**
+* RX: **PB9**
+
+#### UART2
+
+* TX: **PA2**
+* RX: **PA3**
+
+---
+
+## Encoder Wiring
+
+| Wire Color | Signal  |
+| ---------- | ------- |
+| Red        | Motor + |
+| Black      | Motor − |
+| Green      | GND     |
+| Blue       | Vcc     |
+| Yellow     | OUTA    |
+| White      | OUTB    |
+
+---
 
 
+## Pinouts 
 
-## STM32G070-NUCLEO_PINOUTS
-![image](./Docs/stm32g070-NUCLEO_PINOUTS.png)
+![STM32G070 NUCLEO Pinout](Imgs/pinouts_STM32G0.png)
+
+![tb6612FNG](Imgs/tb661fng_pinouts.png)
