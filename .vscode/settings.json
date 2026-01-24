@@ -11,7 +11,7 @@
     "makefile.launchConfigurations": [
         {
             "cwd": "/home/moktar/embedded_stuff/STM32_PROJ/BM_stm32_proj/ProjAli",
-            "binaryPath": "/home/moktar/embedded_stuff/STM32_PROJ/BM_stm32_proj/ProjAli/Template_proj.elf",
+            "binaryPath": "/home/moktar/embedded_stuff/STM32_PROJ/BM_stm32_proj/build/ProjAli/AutoRobot.elf",
             "binaryArgs": []
         }
     ]

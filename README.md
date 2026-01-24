@@ -1,4 +1,4 @@
-# OdometryRobot
+# OdometryRobot (HAL)
 ![alt text](Imgs/robot.png)
 
 ## Project Overview
@@ -40,7 +40,7 @@ The system is divided into two main parts: **Hardware** and **Control System**.
 #### Microcontroller
 
 * **STM32G0** as the main MCU
-* Fully **bare-metal implementation** (no HAL, no RTOS)
+* HAL
 * Responsible for:
 
   * Real-time motor control
@@ -49,18 +49,16 @@ The system is divided into two main parts: **Hardware** and **Control System**.
 
 ---
 
-## STM32 Bare-Metal Software Design
+## STM32  Software Design
 
-All drivers and control modules are implemented **from scratch** in bare-metal C.
+All drivers and control modules are implemented using **HAL**
 
-### Low-Level Drivers
-
-#### Encoder Driver
+#### Encoder Module
 
 * Quadrature decoding using hardware timers (encoder mode)
 * Measures wheel speed and traveled distance
 
-#### UART Driver
+#### UART Module
 
 * Bare-metal UART implementation
 * Used for command reception and data transmission
@@ -70,7 +68,7 @@ All drivers and control modules are implemented **from scratch** in bare-metal C
 * RCC and system clock configuration
 * Peripheral initialization without HAL
 
-#### Motor Control Driver
+#### Motor Control Module
 
 * PWM generation using timers
 * Direction and speed control of DC motors

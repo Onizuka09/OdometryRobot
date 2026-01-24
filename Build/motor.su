@@ -1,3 +1,0 @@
-Src/motor.c:8:6:init_motors	8	static
-Src/motor.c:23:6:run_motors	32	static
-Src/motor.c:58:6:command_motors	16	static

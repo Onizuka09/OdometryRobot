@@ -1,6 +1,0 @@
-./CMSIS/Include/core_cm0plus.h:741:22:__NVIC_EnableIRQ	16	static
-./CMSIS/Include/core_cm0plus.h:850:22:__NVIC_SetPriority	24	static
-Src/delay.c:15:6:InitSystick	8	static
-Src/delay.c:27:6:delay_ms	24	static
-Src/delay.c:35:6:SysTick_Handler	8	static
-Src/delay.c:39:10:get_current_time_ms	8	static
