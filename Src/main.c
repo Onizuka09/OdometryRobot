@@ -11,6 +11,8 @@
 #include "system_clk.h"
 #include "odometry.h"
 #include "navigation.h"
+#include "test.h"
+
 volatile uint32_t odo_time = 0, curr_odo_time = 0, prev_odo_time = 0;
 OdometryTypedef odo = {0};
 
@@ -43,7 +45,7 @@ int main(void)
     uint8_t btn_state = 0;
     while (1)
     {
-
+        // test_encoder(); 
         btn_state = read_btn_status();
         if (btn_state)
         {

@@ -1,5 +1,7 @@
 #include "test.h"
 #include "delay.h"
+volatile uint16_t encL = 0 ; 
+volatile uint16_t encR = 0 ; 
 void pwm_test()
 {
     for (int d = 0; d <= 99; d++)
@@ -21,9 +23,11 @@ void pwm_test()
         delay_ms(10); // Adjust speed of fade
     }
 }
-int test_encoder(TIM_TypeDef* tim)
+int test_encoder()
 {
-    return tim->CNT;
+     encL = TIM1->CNT;
+     encR = TIM3->CNT;
+     return 0 ;
 }
 
 /*

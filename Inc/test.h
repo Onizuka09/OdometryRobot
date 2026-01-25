@@ -3,5 +3,5 @@
 #include "motor.h" 
 
 void pwm_test() ; 
-int test_encoder(TIM_TypeDef* tim) ;
+int test_encoder() ;
 #endif 
