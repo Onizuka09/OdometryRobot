@@ -205,13 +205,13 @@ Angular Velocity Ramping Performance:
 
 #### Left Encoder
 
-* OUTA: **PA8 (D7)** – TIM1_CH1 (Encoder mode)
+* OUTB: **PA8 (D7)** – TIM1_CH1 (Encoder mode)
 * OUTB: **PA9 (D8)** – TIM1_CH2 (Encoder mode)
 
 #### Right Encoder
 
 * OUTA: **PC7 (D9)** – TIM3_CH2 (Encoder mode)
-* OUTB: **PC6** – TIM3_CH1 (Encoder mode)
+* OUTA: **PC6** – TIM3_CH1 (Encoder mode)
 
 ---
 

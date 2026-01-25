@@ -11,7 +11,7 @@
             "request":"launch",
             "servertype": "stlink",
             "cwd": "${workspaceFolder}",
-            "executable": "./build/AutoRobot.elf",
+            "executable": "./build/ProjAli.elf",
             "armToolchainPath": "/opt/gcc-arm-none-eabi-10.3-2021.10/bin/",
             "gdbPath": "/opt/gcc-arm-none-eabi-10.3-2021.10/bin/arm-none-eabi-gdb",
             "device": "DSTM32G070xx",
