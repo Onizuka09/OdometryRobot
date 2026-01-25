@@ -1,2 +1,8 @@
 Build
-build
+build/*.o
+build/*.d
+build/*.lst
+build/*.bin
+build/*.map
+build/*.hex
+build/*.elf
