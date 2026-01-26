@@ -92,7 +92,13 @@ SECTIONS
     . = ALIGN(4);
     _etext = .;        /* define a global symbols at end of code */
   } >FLASH
-
+  /* ARM exception unwinding */
+  .ARM.exidx :
+  {
+      __exidx_start = .;
+      *(.ARM.exidx*)
+      __exidx_end = .;
+  } > FLASH
   /* Constant data goes into FLASH */
   .rodata :
   {
