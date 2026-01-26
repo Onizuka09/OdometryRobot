@@ -6,6 +6,8 @@
 #include "trapezoid.h"
 #define VEL_ACCEL_RATE 10.0f
 
+static void reset_position(void);
+static void reset_angle(void);
 typedef struct
 {
     float kp;
@@ -36,7 +38,6 @@ PID_Profile pid_vel = {
 
 };
 
-
 float velocity_ramp_limit = 0.0f;
 float velocity_target = 0.0f;
 
@@ -54,7 +55,7 @@ uint32_t now = 0.0;  // current time
 uint32_t last = 0.0; // last time
 PID_Profile pid_w = {
     .kp = 1.8f,
-    .ki = 2.5f,
+    .ki = 2.5f, // 2.5
     .kd = 0.05f,
     .error = 0.0f,
     .correction = 0.0f,
@@ -74,51 +75,54 @@ void angle_control(float desired_angle, OdometryTypedef *odo)
 {
     float w_P = 0, w_I = 0, w_D = 0;
     float theta_P = 0, theta_I = 0, theta_D = 0;
-    
+
     // --- FIX 1: Reset the ramp state at the start ---
     pid_w.ramped_setpoint = 0.0f;
 
     // absolute target calculation
-    pid_theta.target = desired_angle ;
-    while (pid_theta.target >  PI) pid_theta.target -= 2.0f * PI;
-    while (pid_theta.target < -PI) pid_theta.target += 2.0f * PI;
+    pid_theta.target = desired_angle;
+    while (pid_theta.target > PI)
+        pid_theta.target -= 2.0f * PI;
+    while (pid_theta.target < -PI)
+        pid_theta.target += 2.0f * PI;
 
     // // --- FIX 2: Initialize last_errors to CURRENT error to prevent the first-loop spike ---
     // OdoUpdate(odo, 0.01f); // Get fresh data
     // float initial_theta_error = pid_theta.target - odo->angle_rad;
     // while (initial_theta_error >  PI) initial_theta_error -= 2.0f * PI;
     // while (initial_theta_error < -PI) initial_theta_error += 2.0f * PI;
-    
-    float theta_last_error = 0.0f ; // initial_theta_error;
-    float w_last_error = 0.0f; // Velocity starts at 0, so 0 is fine here
+
+    float theta_last_error = 0.0f; // initial_theta_error;
+    float w_last_error = 0.0f;     // Velocity starts at 0, so 0 is fine here
 
     last = get_current_time_ms();
-    
+
     while (1)
     {
         now = get_current_time_ms();
         float dt = (float)(now - last) / 1000.0f;
-        if (dt <= 0) dt = 0.001f;
+        if (dt <= 0)
+            dt = 0.001f;
         last = now;
-        
+
         OdoUpdate(odo, dt);
 
         // --- POSITION PID (Master) ---
         pid_theta.error = pid_theta.target - odo->angle_rad;
         // Normalize angle error to [-pi, pi]
-        while (pid_theta.error >  PI) pid_theta.error -= 2.0f * PI;
-        while (pid_theta.error < -PI) pid_theta.error += 2.0f * PI;
-        
+        while (pid_theta.error > PI)
+            pid_theta.error -= 2.0f * PI;
+        while (pid_theta.error < -PI)
+            pid_theta.error += 2.0f * PI;
+
         // Exit Condition: Accuracy and Stability
-        if (fabsf(pid_theta.error) <= 0.00175f) 
+        if (fabsf(pid_theta.error) <= 0.00175f)
         {
             break;
         }
 
         theta_P = pid_theta.error;
         theta_I += pid_theta.error * dt;
-        
-       
 
         theta_D = (pid_theta.error - theta_last_error) / dt;
         theta_last_error = pid_theta.error;
@@ -127,19 +131,27 @@ void angle_control(float desired_angle, OdometryTypedef *odo)
 
         // --- VELOCITY GOVERNOR (Symmetrical Ramp) ---
         pid_w.target = pid_theta.correction;
-
+        // Final Safety limit
+        if (pid_w.target > MAX_ANGULAR_VEL)
+            pid_w.target = MAX_ANGULAR_VEL;
+        if (pid_w.target < -MAX_ANGULAR_VEL)
+            pid_w.target = -MAX_ANGULAR_VEL;
         if (pid_w.ramped_setpoint < MAX_ANGULAR_VEL)
         {
             pid_w.ramped_setpoint += MAX_ANGULAR_ACCEL * dt;
         }
 
         // FIX 3: Symmetrical Clamping (Works for both Left and Right turns)
-        if (pid_w.target >  pid_w.ramped_setpoint) pid_w.target =  pid_w.ramped_setpoint;
-        if (pid_w.target < -pid_w.ramped_setpoint) pid_w.target = -pid_w.ramped_setpoint;
+        if (pid_w.target > pid_w.ramped_setpoint)
+            pid_w.target = pid_w.ramped_setpoint;
+        if (pid_w.target < -pid_w.ramped_setpoint)
+            pid_w.target = -pid_w.ramped_setpoint;
 
         // Final Safety limit
-        if (pid_w.target >  MAX_ANGULAR_VEL) pid_w.target =  MAX_ANGULAR_VEL;
-        if (pid_w.target < -MAX_ANGULAR_VEL) pid_w.target = -MAX_ANGULAR_VEL;
+        if (pid_w.target > MAX_ANGULAR_VEL)
+            pid_w.target = MAX_ANGULAR_VEL;
+        if (pid_w.target < -MAX_ANGULAR_VEL)
+            pid_w.target = -MAX_ANGULAR_VEL;
 
         // --- VELOCITY PID (Slave) ---
         pid_w.error = pid_w.target - odo->w;
@@ -150,23 +162,32 @@ void angle_control(float desired_angle, OdometryTypedef *odo)
             w_I += pid_w.error * dt;
         }
 
-        if (w_I > 25.0f) w_I = 25.0f;
-        if (w_I < -25.0f) w_I = -25.0f;
+        if (w_I > 25.0f)
+            w_I = 25.0f;
+        if (w_I < -25.0f)
+            w_I = -25.0f;
 
         w_D = (pid_w.error - w_last_error) / dt;
         w_last_error = pid_w.error;
 
         pid_w.correction = pid_w.kp * w_P + w_I * pid_w.ki + pid_w.kd * w_D;
-
+        if (pid_w.correction > pid_w.ramped_setpoint)
+            pid_w.correction = pid_w.ramped_setpoint;
+        if (pid_w.correction < -pid_w.ramped_setpoint)
+            pid_w.correction = -pid_w.ramped_setpoint;
         // Motor Command (Rotation)
-        run_motors(ANGULAR_CMD, pid_w.correction,-pid_w.correction);
+        run_motors(ANGULAR_CMD, -pid_w.correction, pid_w.correction);
 
         delay_ms(10);
     }
-    
-    run_motors(ANGULAR_CMD, 0, 0); 
+
+    run_motors(ANGULAR_CMD, 0, 0);
+    HAL_Delay(50);
     TurOff_led();
-    last = 0 ; now = 0 ; 
+    OdoInit(odo);
+    reset_angle();
+    last = 0;
+    now = 0;
 }
 void position_control(int16_t desired_distance, OdometryTypedef *odo)
 {
@@ -175,7 +196,6 @@ void position_control(int16_t desired_distance, OdometryTypedef *odo)
     float v_P = 0, v_I = 0, v_D = 0;
     float pos_last_error = 0.0f;
     float vel_last_error = 0.0f;
-    velocity_ramp_limit = 0.0f;
 
     // OdoUpdate()
     pid_pos.target = desired_distance + odo->total_distance;
@@ -204,25 +224,40 @@ void position_control(int16_t desired_distance, OdometryTypedef *odo)
         // corrected speed
         pid_pos.correction = pid_pos.kp * pos_P + pid_pos.ki * pos_I + pid_pos.kd * pos_D;
 
+        pid_vel.target = pid_pos.correction;
         // velocity
         // We ramp up a "Speed Limit" so the robot doesn't jerk at the start
+        if (pid_vel.target > MAX_VELOCITY)
+            pid_vel.target = MAX_VELOCITY;
+        if (pid_vel.target < -MAX_VELOCITY)
+            pid_vel.target = -MAX_VELOCITY;
 
-        if (velocity_ramp_limit < MAX_VELOCITY)
+        if (pid_vel.ramped_setpoint < MAX_VELOCITY && pid_vel.ramped_setpoint + MAX_VELOCITY_ACCELERATION * dt < MAX_VELOCITY)
         {
-            velocity_ramp_limit += VEL_ACCEL_RATE * dt;
+            pid_vel.ramped_setpoint += MAX_VELOCITY_ACCELERATION * dt;
         }
-        velocity_target = pid_pos.correction;
+        if (pid_vel.target > pid_vel.ramped_setpoint)
+            pid_vel.target = pid_vel.ramped_setpoint;
+        if (pid_vel.target < -pid_vel.ramped_setpoint)
+            pid_vel.target = -pid_vel.ramped_setpoint;
 
-        if (velocity_target > velocity_ramp_limit)
-            velocity_target = velocity_ramp_limit;
-        if (velocity_target > MAX_VELOCITY)
-            velocity_target = MAX_VELOCITY;
-        if (velocity_target < -MAX_VELOCITY)
-            velocity_target = -MAX_VELOCITY;
+        // Final Safety limit
+        if (pid_vel.target > MAX_VELOCITY)
+            pid_vel.target = MAX_VELOCITY;
+        if (pid_vel.target < -MAX_VELOCITY)
+            pid_vel.target = -MAX_VELOCITY;
+        // velocity_target = pid_pos.correction;
+
+        // if (velocity_target > velocity_ramp_limit)
+        //     velocity_target = velocity_ramp_limit;
+        // if (velocity_target > MAX_VELOCITY)
+        //     velocity_target = MAX_VELOCITY;
+        // if (velocity_target < -MAX_VELOCITY)
+        //     velocity_target = -MAX_VELOCITY;
 
         // --- PID CALCULATION ---
-        pid_vel.error = velocity_target - odo->v;
-        // error = desired_motor_speed.value.linear_speed - odo->v; //
+        // pid_vel.error = velocity_target - odo->v;
+        pid_vel.error = pid_vel.target - odo->v;
         v_P = pid_vel.error;
         // Deadzone for I to prevent jitter at high speed
         if (fabs(pid_vel.error) > 0.5f)
@@ -238,14 +273,22 @@ void position_control(int16_t desired_distance, OdometryTypedef *odo)
         vel_last_error = pid_vel.error;
         pid_vel.correction = pid_vel.kp * v_P + v_I * pid_vel.ki + pid_vel.kd * v_D;
 
+        if (pid_vel.correction > pid_vel.ramped_setpoint)
+            pid_vel.correction = pid_vel.ramped_setpoint;
+        if (pid_vel.correction < -pid_vel.ramped_setpoint)
+            pid_vel.correction = -pid_vel.ramped_setpoint;
+
         run_motors(POSITION_CMD, pid_vel.correction, pid_vel.correction);
 
         delay_ms(10);
     }
+
     run_motors(POSITION_CMD, 0, 0); // Active brake
     TurOff_led();
     last = 0;
     now = 0;
+    OdoInit(odo);
+    reset_position();
 }
 void move_linear_speed(float desired_motor_speed, OdometryTypedef *odo)
 {
@@ -368,10 +411,10 @@ void move_angular_speed(float desired_motor_ang_speed, OdometryTypedef *odo)
             w_I += pid_w.error * dt;
         }
         // anti windup for i
-        if (w_I > 20.0f)
-            w_I = 20.0f;
-        if (w_I < -20.0f)
-            w_I = -20.0f;
+        if (w_I > 25.0f)
+            w_I = 25.0f;
+        if (w_I < -25.0f)
+            w_I = -25.0f;
 
         w_D = (pid_w.error - last_error) / dt;
 
@@ -386,12 +429,37 @@ void move_angular_speed(float desired_motor_ang_speed, OdometryTypedef *odo)
 
         // consider we reached desired output this is only for testing the pid ang velocity
 
-        run_motors(ANGULAR_CMD, pid_w.correction, -pid_w.correction);
+        run_motors(ANGULAR_CMD, -pid_w.correction, pid_w.correction);
 
         delay_ms(10);
     }
+    odo->v = 0;
     run_motors(ANGULAR_CMD, 0, 0);
     TurOff_led();
 
     return;
+}
+static void reset_position(void)
+{
+    pid_vel.error = 0;
+    pid_vel.correction = 0;
+    pid_vel.ramped_setpoint = 0;
+    pid_vel.target = 0;
+
+    pid_pos.error = 0;
+    pid_pos.correction = 0;
+    pid_pos.ramped_setpoint = 0;
+    pid_pos.target = 0;
+}
+static void reset_angle(void)
+{
+    pid_w.error = 0;
+    pid_w.correction = 0;
+    pid_w.ramped_setpoint = 0;
+    pid_w.target = 0;
+
+    pid_theta.error = 0;
+    pid_theta.correction = 0;
+    pid_theta.ramped_setpoint = 0;
+    pid_theta.target = 0;
 }

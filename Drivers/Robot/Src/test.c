@@ -7,19 +7,23 @@
 #include <stdint.h>
 volatile  uint16_t  encL = 0 ; 
 volatile uint16_t encR = 0 ; 
-void pwm_test()
+void test_pwm()
 {
     for (int8_t i = 0; i < MAX_PWM_SPEED; i += 10)
     {
         command_motors(i, i);
-        HAL_Delay(50);
+        test_encoder();
+        HAL_Delay(100);
+
     }
 
     command_motors(0, 0);
+    HAL_Delay(1000);
     for (int8_t i = MAX_PWM_SPEED; i > 0  ; i -= 10)
     {
         command_motors(i, i);
-        HAL_Delay(50);
+        test_encoder();
+        HAL_Delay(100);
     }
     command_motors(0, 0);
 }

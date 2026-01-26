@@ -3,8 +3,12 @@
 #include "motor.h" 
 
 #include <main.h>
-void pwm_test() ; 
+void test_pwm() ; 
+
 int test_encoder() ;
 
+void test_max_velocity(OdometryTypedef* odo);
+
+void test_max_ang_velocity(OdometryTypedef* odo);
 void test_uart(); 
 #endif 

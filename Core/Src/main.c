@@ -1,39 +1,40 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2026 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file           : main.c
+ * @brief          : Main program body
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2026 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "dma.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include <delay.h> 
-#include <navigation.h> 
-#include <odometry.h> 
+#include <delay.h>
+#include <navigation.h>
+#include <odometry.h>
 #include <test.h>
-#include <motor.h> 
-#include <navigation.h> 
-#include <debug_driver.h> 
-#include <encoder.h> 
+#include <motor.h>
+#include <navigation.h>
+#include <debug_driver.h>
+#include <encoder.h>
 #include <pwm.h>
-#include <bsp.h> 
+#include <bsp.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -43,6 +44,9 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+volatile uint32_t odo_time = 0, curr_odo_time = 0, prev_odo_time = 0;
+OdometryTypedef odo = {0};
+volatile uint8_t btn_state = 0;
 
 /* USER CODE END PD */
 
@@ -97,24 +101,52 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_TIM1_Init();
   MX_USART2_UART_Init();
   MX_TIM3_Init();
   MX_TIM15_Init();
   /* USER CODE BEGIN 2 */
-  // PWM_TIM15_Start(); 
+  init_motors();
   timer1_LeftEncoder_start();
-  timer3_RightEncoder_start(); 
+  timer3_RightEncoder_start();
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  OdoInit(&odo);
   while (1)
   {
-    test_uart(); 
-    test_encoder();
-    HAL_Delay(1000) ;
+    // test_uart();
+    // test_encoder();
+    btn_state = read_btn_status();
+    if (btn_state)
+    {
+
+      // test_max_ang_velocity();
+      // command_motors(MIN_PWM_SPEED, MIN_PWM_SPEED);
+      // move_angular_speed(5, &odo);
+      position_control(50, &odo);
+      delay_ms(1000);
+      angle_control(DEG2RAD(90), &odo);
+      delay_ms(1000);
+      position_control(50, &odo);
+      delay_ms(1000);
+      angle_control(DEG2RAD(90), &odo);
+      delay_ms(1000);
+      position_control(50, &odo);
+      delay_ms(1000);
+      angle_control(DEG2RAD(90), &odo);
+      delay_ms(1000);
+      position_control(50, &odo);
+      delay_ms(1000);
+      angle_control(DEG2RAD(90), &odo);
+
+
+      btn_state = 0;
+    }
+    HAL_Delay(1000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -165,6 +197,28 @@ void SystemClock_Config(void)
 /* USER CODE BEGIN 4 */
 
 /* USER CODE END 4 */
+
+/**
+  * @brief  Period elapsed callback in non blocking mode
+  * @note   This function is called  when TIM6 interrupt took place, inside
+  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
+  * a global variable "uwTick" used as application time base.
+  * @param  htim : TIM handle
+  * @retval None
+  */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  /* USER CODE BEGIN Callback 0 */
+
+  /* USER CODE END Callback 0 */
+  if (htim->Instance == TIM6)
+  {
+    HAL_IncTick();
+  }
+  /* USER CODE BEGIN Callback 1 */
+
+  /* USER CODE END Callback 1 */
+}
 
 /**
   * @brief  This function is executed in case of error occurrence.

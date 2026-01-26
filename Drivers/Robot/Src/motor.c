@@ -1,8 +1,8 @@
 #include "motor.h"
 #include "pwm.h"
 #include <math.h>
-#include <main.h> 
-#include <stm32g070xx.h> 
+#include <main.h>
+#include <stm32g070xx.h>
 float pwmMl = 0;
 float pwmMr = 0;
 volatile int8_t pwml_dbg = 0;
@@ -42,7 +42,8 @@ void run_motors(Command_type cmd, float cmdML, float cmdMR)
         pwmMl = (cmdML / MAX_ANGULAR_VEL) * MAX_PWM_SPEED;
         pwmMr = (cmdMR / MAX_ANGULAR_VEL) * MAX_PWM_SPEED;
     }
-    else {
+    else
+    {
         __NOP();
     }
     // clamping
@@ -55,15 +56,13 @@ void run_motors(Command_type cmd, float cmdML, float cmdMR)
         pwmMr = MAX_PWM_SPEED;
     if (pwmMr < -MAX_PWM_SPEED)
         pwmMr = -MAX_PWM_SPEED;
-    
+
     command_motors(pwmMl, pwmMr);
 }
 void command_motors(int8_t pwmL, int8_t pwmR)
 {
 
-    pwml_dbg = pwmL;
-    pwmr_dbg = pwmR;
-    if (pwmL > 0)
+    if (pwmL >= 0)
     {
         HAL_GPIO_WritePin(GPIOB, IN3_ML, 0);
         HAL_GPIO_WritePin(GPIOB, IN4_ML, 1);
@@ -72,10 +71,10 @@ void command_motors(int8_t pwmL, int8_t pwmR)
     { // motor bech iwa5er
         HAL_GPIO_WritePin(GPIOB, IN3_ML, 1);
         HAL_GPIO_WritePin(GPIOB, IN4_ML, 0);
-        pwmL= pwmL * -1;
+        pwmL = pwmL * -1;
     }
 
-    if (pwmR > 0)
+    if (pwmR >= 0)
     {
         HAL_GPIO_WritePin(GPIOB, IN1_MR, 1);
         HAL_GPIO_WritePin(GPIOB, IN2_MR, 0);
@@ -84,13 +83,14 @@ void command_motors(int8_t pwmL, int8_t pwmR)
     {
         HAL_GPIO_WritePin(GPIOB, IN1_MR, 0);
         HAL_GPIO_WritePin(GPIOB, IN2_MR, 1);
-        pwmR= pwmR * -1;
-
+        pwmR = pwmR * -1;
     }
-    // el compiler yetmanyek aliya mahbech ye9blha fuck you gcc 
+    pwml_dbg = pwmL;
+    pwmr_dbg = pwmR;
+    // el compiler yetmanyek aliya mahbech ye9blha fuck you gcc
     // pwmL=abs(pwmL);
     // pwmR=abs(pwmR);
 
-    PWM_TIM15_CH1_SetDutyCyle(pwmL);
     PWM_TIM15_CH2_SetDutyCyle(pwmR);
+    PWM_TIM15_CH1_SetDutyCyle(pwmL);
 }

@@ -13,7 +13,8 @@
 #include <stdio.h> 
 int __io_putchar(int ch)
 {
-	debug_uart_write((ch & 0xFF));
+
+	HAL_UART_Transmit_DMA(&huart2,(uint8_t*)((ch & 0xFF)),sizeof(ch)); 
 	return ch;
 }
 
