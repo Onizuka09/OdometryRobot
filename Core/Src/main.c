@@ -18,6 +18,8 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "cmsis_os.h"
+#include "crc.h"
 #include "dma.h"
 #include "tim.h"
 #include "usart.h"
@@ -63,6 +65,7 @@ volatile uint8_t btn_state = 0;
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+void MX_FREERTOS_Init(void);
 static void MX_NVIC_Init(void);
 /* USER CODE BEGIN PFP */
 
@@ -107,6 +110,7 @@ int main(void)
   MX_USART2_UART_Init();
   MX_TIM3_Init();
   MX_TIM15_Init();
+  MX_CRC_Init();
 
   /* Initialize interrupts */
   MX_NVIC_Init();
@@ -124,6 +128,17 @@ int main(void)
 
   /* USER CODE END 2 */
 
+  /* Init scheduler */
+  osKernelInitialize();
+
+  /* Call init function for freertos objects (in cmsis_os2.c) */
+  MX_FREERTOS_Init();
+
+  /* Start scheduler */
+  osKernelStart();
+
+  /* We should never get here as control is now taken by the scheduler */
+
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   OdoInit(&odo);
@@ -131,28 +146,28 @@ int main(void)
   {
     // test_uart();
     // test_encoder();
-    btn_state = read_btn_status();
-    if (btn_state)
-    {
-      position_control(50, &odo);
-      delay_ms(1000);
-      angle_control(DEG2RAD(90), &odo);
-      delay_ms(1000);
-      position_control(50, &odo);
-      delay_ms(1000);
-      angle_control(DEG2RAD(90), &odo);
-      delay_ms(1000);
-      position_control(50, &odo);
-      delay_ms(1000);
-      angle_control(DEG2RAD(90), &odo);
-      delay_ms(1000);
-      position_control(50, &odo);
-      delay_ms(1000);
-      angle_control(DEG2RAD(90), &odo);
+    // btn_state = read_btn_status();
+    // if (btn_state)
+    // {
+    //   position_control(50, &odo);
+    //   delay_ms(1000);
+    //   angle_control(DEG2RAD(90), &odo);
+    //   delay_ms(1000);
+    //   position_control(50, &odo);
+    //   delay_ms(1000);
+    //   angle_control(DEG2RAD(90), &odo);
+    //   delay_ms(1000);
+    //   position_control(50, &odo);
+    //   delay_ms(1000);
+    //   angle_control(DEG2RAD(90), &odo);
+    //   delay_ms(1000);
+    //   position_control(50, &odo);
+    //   delay_ms(1000);
+    //   angle_control(DEG2RAD(90), &odo);
 
-      btn_state = 0;
-    }
-    HAL_Delay(1000);
+    //   btn_state = 0;
+    // }
+    // HAL_Delay(1000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

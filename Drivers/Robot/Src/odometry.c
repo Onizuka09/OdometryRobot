@@ -100,8 +100,8 @@ void OdoUpdate(OdometryTypedef *odo, float dt)
     // Calculate distances
     float left_distance = left_delta * DISTANCE_PER_PULSE_CM;
     float right_distance = right_delta * DISTANCE_PER_PULSE_CM;
-    odo->left_distance = left_distance;
-    odo->right_distance = right_distance;
+    // odo->left_distance = left_distance;
+    // odo->right_distance = right_distance;
     // Update cumulative distances
     total_left_distance += left_distance;
     total_right_distance += right_distance;

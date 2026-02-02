@@ -184,7 +184,7 @@ void angle_control(float desired_angle, OdometryTypedef *odo)
     run_motors(ANGULAR_CMD, 0, 0);
     HAL_Delay(50);
     TurOff_led();
-    OdoInit(odo);
+    // OdoInit(odo);
     reset_angle();
     last = 0;
     now = 0;
@@ -287,7 +287,7 @@ void position_control(int16_t desired_distance, OdometryTypedef *odo)
     TurOff_led();
     last = 0;
     now = 0;
-    OdoInit(odo);
+    // OdoInit(odo);
     reset_position();
 }
 void move_linear_speed(float desired_motor_speed, OdometryTypedef *odo)

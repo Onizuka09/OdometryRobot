@@ -15,7 +15,7 @@
 #define PERIOD 10 // period to call the odometry update function
 // #define MM_PER_COUNT (2 * 31415 * WHEEL_RADIUS_MM / PULSE_PER_REVOLUTION) // 2πr/cpr
 
-
+#pragma pack(push, 1)
 typedef struct {
     // Position and Orientation
     float x;                    // X position in cm (relative to start)
@@ -26,8 +26,8 @@ typedef struct {
     // Velocities
     float v;      // Linear velocity in cm/s
     float w;     // Angular velocity in rad/s
-    float left_speed;          // Left wheel speed in cm/s
-    float right_speed;         // Right wheel speed in cm/s
+    // float left_speed;          // Left wheel speed in cm/s
+    // float right_speed;         // Right wheel speed in cm/s
     
     // Encoder Data
     int16_t left_encoder_delta;  // Left encoder ticks since last update
@@ -37,10 +37,11 @@ typedef struct {
     float total_distance;      // Total distance traveled in cm
     float current_distance ;   // the current traveled distance (each 10 ms)
     // Additional useful metrics (like first implementation)
-    float left_distance;       // Left wheel distance this update
-    float right_distance;      // Right wheel distance this update
+    // float left_distance;       // Left wheel distance this update
+    // float right_distance;      // Right wheel distance this update
     
 } OdometryTypedef;
+#pragma pack(pop)
 
 
 

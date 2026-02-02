@@ -1,1 +1,3 @@
-
+[submodule "Drivers/Zetta-Protocol"]
+	path = Drivers/Zetta-Protocol
+	url = git@github.com:Onizuka09/Zetta-Protocol.git

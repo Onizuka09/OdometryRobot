@@ -8,10 +8,6 @@
                 "${workspaceFolder}/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/",
                 "${workspaceFolder}/Middlewares/Third_Party/FreeRTOS/Source/include/",
                 "${workspaceFolder}/Middlewares/Third_Party/FreeRTOS/Source/portable/",
-                "${workspaceFolder}/Drivers/micro_ros_stm32cubemx_utils/**",
-                "${workspaceFolder}/Drivers/micro_ros_stm32cubemx_utils/extra_sources/**",
-                "${workspaceFolder}/Drivers/micro_ros_stm32cubemx_utils/extra_sources/microros_transports/**",
-                "${workspaceFolder}/Drivers/micro_ros_stm32cubemx_utils/microros_static_library/libmicroros/**",
                 "${workspaceFolder}/Core/Inc/*",
                 "${workspaceFolder}/Drivers/Robot/Inc/*",
                 "${workspaceFolder}/Drivers/Robot/Src/*",
@@ -20,6 +16,8 @@
                 "${workspaceFolder}/Drivers/STM32G0xx_HAL_Driver/Src*",
                 "${workspaceFolder}/Drivers/STM32G0xx_HAL_Driver/Inc/*",
                 "${workspaceFolder}/Drivers/CMSIS/Device/ST/STM32G0xx/Include",
+                "${workspaceFolder}/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM0",
+                "${workspaceFolder}/Drivers/Zetta-Protocol/Core/inc/**"
             ],
             "defines": [
                 "DSTM32G070xx"
