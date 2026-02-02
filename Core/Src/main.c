@@ -63,6 +63,7 @@ volatile uint8_t btn_state = 0;
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+static void MX_NVIC_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -106,7 +107,17 @@ int main(void)
   MX_USART2_UART_Init();
   MX_TIM3_Init();
   MX_TIM15_Init();
+
+  /* Initialize interrupts */
+  MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
+  // issue with fucking cube  MX
+  htim15.Init.Prescaler = 16 - 1;
+  htim15.Init.Period = 100 - 1;
+  if (HAL_TIM_Base_Init(&htim15) != HAL_OK)
+  {
+    Error_Handler();
+  }
   init_motors();
   timer1_LeftEncoder_start();
   timer3_RightEncoder_start();
@@ -123,10 +134,6 @@ int main(void)
     btn_state = read_btn_status();
     if (btn_state)
     {
-
-      // test_max_ang_velocity();
-      // command_motors(MIN_PWM_SPEED, MIN_PWM_SPEED);
-      // move_angular_speed(5, &odo);
       position_control(50, &odo);
       delay_ms(1000);
       angle_control(DEG2RAD(90), &odo);
@@ -142,7 +149,6 @@ int main(void)
       position_control(50, &odo);
       delay_ms(1000);
       angle_control(DEG2RAD(90), &odo);
-
 
       btn_state = 0;
     }
@@ -192,6 +198,20 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief NVIC Configuration.
+  * @retval None
+  */
+static void MX_NVIC_Init(void)
+{
+  /* DMA1_Channel1_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 3, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
+  /* DMA1_Channel2_3_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel2_3_IRQn, 3, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel2_3_IRQn);
 }
 
 /* USER CODE BEGIN 4 */
