@@ -1,7 +1,6 @@
-# OdometryRobot (HAL)
+# OdometryRobot (HAL) v1.0.0
 ![alt text](Imgs/robot.png)
 
-[Demo videos](https://drive.google.com/drive/u/1/folders/1ZNW4RhMkKBMcUL0omC54ymU_Hy738hz0)
 ## Project Overview
 
 **OdometryRobot** is a mobile robotics project focused on **precise motion control and odometry estimation** using a **bare-metal STM32 microcontroller**.
@@ -22,9 +21,9 @@ Right   : 90°
 Forward : 100 m
 Left    : 90°
 ```
+[Demo videos](https://drive.google.com/drive/u/1/folders/1ZNW4RhMkKBMcUL0omC54ymU_Hy738hz0)
 
 Using this sequence, the robot generates a trajectory and continuously estimates its **position**, **orientation**, and **velocity** through odometry.
-
 ---
 
 ## System Architecture
