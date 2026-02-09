@@ -186,61 +186,60 @@ int main(void)
 
   while (1)
   {
-    // switch (nav_data.nav_state)
-    // {
-    // case 0: // RESET
-    //   /* code */
-    //   command_motors(0, 0);
-    //   osDelay(20);
-    //   OdoInit(&odo);
-    //   OdoUpdate(&odo, 0);
-    //   zetta_send(&hzettatx, MSG_PUBLISH, &odo, sizeof(OdometryTypedef));
-    //   nav_data.nav_state = 3 ;
-    //   break;
-    // case 1:
-    //   /* code */
-    //   position_control(nav_data.cmd, &odo);
-    //   nav_data.nav_state = 3 ;
-    //   break;
-    // case 2:
-    //   /* code */
-    //   angle_control(DEG2RAD(nav_data.cmd), &odo);
+    switch (nav_data.nav_state)
+    {
+    case 0: // RESET
+      /* code */
+      command_motors(0, 0);
+      delay_ms(20);
+      OdoInit(&odo);
+      OdoUpdate(&odo, 0);
+      zetta_send(&hzettatx, MSG_PUBLISH, &odo, sizeof(OdometryTypedef));
+      nav_data.nav_state = 3;
+      break;
+    case 1:
+      /* code */
+      position_control(nav_data.cmd, &odo);
+      nav_data.nav_state = 3;
+      break;
+    case 2:
+      /* code */
+      angle_control(DEG2RAD(nav_data.cmd), &odo);
+      nav_data.nav_state = 3;
+      break;
 
-    //   nav_data.nav_state = 3 ;
-    //   break;
+    default:
 
-    // default:
-
-    //   command_motors(0, 0);
-    //   osDelay(20);
-    //   OdoUpdate(&odo, 0);
-    //   zetta_send(&hzettatx, MSG_PUBLISH, &odo, sizeof(OdometryTypedef));
-    //   break;
-    // }
+      command_motors(0, 0);
+      delay_ms(20);
+      OdoUpdate(&odo, 0);
+      zetta_send(&hzettatx, MSG_PUBLISH, &odo, sizeof(OdometryTypedef));
+      break;
+    }
     // test_uart();
     // test_encoder();
-    btn_state = read_btn_status();
-    if (btn_state)
-    {
-      // position_control(50, &odo);
-      // delay_ms(1000);
-      angle_control(DEG2RAD(90), &odo);
-      // delay_ms(1000);
-      // position_control(50, &odo);
-      // delay_ms(1000);
-      // angle_control(DEG2RAD(90), &odo);
-      // delay_ms(1000);
-      // position_control(50, &odo);
-      // delay_ms(1000);
-      // angle_control(DEG2RAD(90), &odo);
-      // delay_ms(1000);
-      // position_control(50, &odo);
-      // delay_ms(1000);
-      // angle_control(DEG2RAD(90), &odo);
+    // btn_state = read_btn_status();
+    // if (btn_state)
+    // {
+    //   // position_control(50, &odo);
+    //   // delay_ms(1000);
+    //   angle_control(DEG2RAD(90), &odo);
+    //   // delay_ms(1000);
+    //   // position_control(50, &odo);
+    //   // delay_ms(1000);
+    //   // angle_control(DEG2RAD(90), &odo);
+    //   // delay_ms(1000);
+    //   // position_control(50, &odo);
+    //   // delay_ms(1000);
+    //   // angle_control(DEG2RAD(90), &odo);
+    //   // delay_ms(1000);
+    //   // position_control(50, &odo);
+    //   // delay_ms(1000);
+    //   // angle_control(DEG2RAD(90), &odo);
 
-      btn_state = 0;
-    }
-    HAL_Delay(1000);
+    //   btn_state = 0;
+    // }
+    delay_ms(20);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
