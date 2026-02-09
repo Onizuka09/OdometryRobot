@@ -7,6 +7,7 @@
 
 #include <stm32g070xx.h>
 #include <main.h>
+#include "delay.h"
 
 void delay_ms(uint32_t d)
 {
