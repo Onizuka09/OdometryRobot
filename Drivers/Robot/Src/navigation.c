@@ -4,10 +4,19 @@
 #include "delay.h"
 #include "bsp.h"
 #include "trapezoid.h"
+
+#include "main.h"
+#include <zetta_protocol.h>
+#include <stdint-gcc.h>
+#include <string.h>
+
 #define VEL_ACCEL_RATE 10.0f
 
+extern Zetta_t hzettatx;
+extern ZettaInterface_t iface;
 static void reset_position(void);
 static void reset_angle(void);
+
 typedef struct
 {
     float kp;
@@ -86,27 +95,34 @@ void angle_control(float desired_angle, OdometryTypedef *odo)
     while (pid_theta.target < -PI)
         pid_theta.target += 2.0f * PI;
 
-    // // --- FIX 2: Initialize last_errors to CURRENT error to prevent the first-loop spike ---
-    // OdoUpdate(odo, 0.01f); // Get fresh data
-    // float initial_theta_error = pid_theta.target - odo->angle_rad;
-    // while (initial_theta_error >  PI) initial_theta_error -= 2.0f * PI;
-    // while (initial_theta_error < -PI) initial_theta_error += 2.0f * PI;
-
     float theta_last_error = 0.0f; // initial_theta_error;
     float w_last_error = 0.0f;     // Velocity starts at 0, so 0 is fine here
-
+    float dt = 0.0;
     last = get_current_time_ms();
+    // now = get_current_time_ms();
+    // dt = (float)(now - last) / 1000.0f;
+    // if (dt <= 0)
+    //     dt = 0.001f;
+    // last = now;
+    // OdoUpdate(odo, dt);
+
+    // pid_theta.target = pid_theta.target + odo->angle_rad;
 
     while (1)
     {
         now = get_current_time_ms();
-        float dt = (float)(now - last) / 1000.0f;
+        dt = (float)(now - last) / 1000.0f;
         if (dt <= 0)
             dt = 0.001f;
         last = now;
 
         OdoUpdate(odo, dt);
+        // OdoUpdate(&odo_shadow,dt);10
+        zetta_send(&hzettatx, MSG_PUBLISH, odo, sizeof(OdometryTypedef));
 
+        // taskENTER_CRITICAL(); // Disables interrupts/context switching for a few nanoseconds
+        // memcpy(&odo_shadow, &odo, sizeof(OdometryTypedef));
+        // taskEXIT_CRITICAL(); // Re-enable everything
         // --- POSITION PID (Master) ---
         pid_theta.error = pid_theta.target - odo->angle_rad;
         // Normalize angle error to [-pi, pi]
@@ -182,7 +198,7 @@ void angle_control(float desired_angle, OdometryTypedef *odo)
     }
 
     run_motors(ANGULAR_CMD, 0, 0);
-    HAL_Delay(50);
+    delay_ms(50);
     TurOff_led();
     // OdoInit(odo);
     reset_angle();
@@ -210,6 +226,13 @@ void position_control(int16_t desired_distance, OdometryTypedef *odo)
         last = now;
 
         OdoUpdate(odo, dt);
+        // OdoUpdate(&odo_shadow,dt);
+        // if ( )
+        zetta_send(&hzettatx, MSG_PUBLISH, odo, sizeof(OdometryTypedef));
+
+        // taskENTER_CRITICAL(); // Disables interrupts/context switching for a few nanoseconds
+        // memcpy(&odo_shadow, &odo, sizeof(OdometryTypedef));
+        // taskEXIT_CRITICAL(); // Re-enable everything
         pid_pos.error = pid_pos.target - odo->total_distance;
         if (fabsf(pid_pos.error) <= 0.2f) // exit loop
         {
