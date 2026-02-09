@@ -7,7 +7,7 @@
         "Src/sysmem.c": "c",
         "Startup/startup_stm32f401retx.s": "asm"
     },
-    "cortex-debug.variableUseNaturalFormat": true,
+    "cortex-debug.variableUseNaturalFormat": false,
     "makefile.launchConfigurations": [
         {
             "cwd": "/home/moktar/embedded_stuff/STM32_PROJ/BM_stm32_proj/ProjAli",
