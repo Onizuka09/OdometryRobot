@@ -18,7 +18,6 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "cmsis_os.h"
 #include "crc.h"
 #include "dma.h"
 #include "tim.h"
@@ -37,6 +36,7 @@
 #include <encoder.h>
 #include <pwm.h>
 #include <bsp.h>
+#include <zetta_protocol.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -48,6 +48,54 @@
 /* USER CODE BEGIN PD */
 volatile uint32_t odo_time = 0, curr_odo_time = 0, prev_odo_time = 0;
 OdometryTypedef odo = {0};
+Zetta_t hzettatx;
+Zetta_t hzettarx;
+#pragma pack(push, 1)
+typedef struct
+{
+  uint8_t nav_state; // 0 , stop , 1 position , 2 angle
+  float cmd;
+} NavCommand_t;
+#pragma pack(pop)
+
+volatile NavCommand_t nav_data = {0};
+volatile uint8_t zetta_rx_byte = 0;
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
+{
+  // HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, 1);
+  zetta_transmit_cplt_clb(&hzettatx);
+}
+void uart_send(void *data, uint8_t size)
+{
+  HAL_UART_Transmit_DMA(&huart2, data, size);
+}
+
+uint32_t stm32_crc(uint32_t *data, uint32_t size)
+{
+  __HAL_CRC_DR_RESET(&hcrc);
+  uint32_t crc = 0;
+  crc = HAL_CRC_Calculate(&hcrc, (uint32_t *)data, size);
+  return crc;
+}
+
+ZettaInterface_t iface = {
+    .send = uart_send,
+    .computeCRC = stm32_crc,
+};
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+  if (zetta_ParseByte(&hzettarx, zetta_rx_byte) == ZETTA_OK)
+  {
+    TurOn_led();
+    Zetta_GetPayload(&hzettarx, (void *)&nav_data);
+    // process buffer
+  }
+
+  zetta_recieve_cplt_clb(&hzettarx);
+  HAL_UART_Receive_DMA(&huart2, (uint8_t *)&zetta_rx_byte, 1);
+}
+
 volatile uint8_t btn_state = 0;
 
 /* USER CODE END PD */
@@ -65,7 +113,6 @@ volatile uint8_t btn_state = 0;
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-void MX_FREERTOS_Init(void);
 static void MX_NVIC_Init(void);
 /* USER CODE BEGIN PFP */
 
@@ -77,9 +124,9 @@ static void MX_NVIC_Init(void);
 /* USER CODE END 0 */
 
 /**
-  * @brief  The application entry point.
-  * @retval int
-  */
+ * @brief  The application entry point.
+ * @retval int
+ */
 int main(void)
 {
 
@@ -115,59 +162,85 @@ int main(void)
   /* Initialize interrupts */
   MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
-  // issue with fucking cube  MX
-  htim15.Init.Prescaler = 16 - 1;
-  htim15.Init.Period = 100 - 1;
-  if (HAL_TIM_Base_Init(&htim15) != HAL_OK)
+  // set urt2 txtfifo threshold to full
+  if (HAL_UARTEx_SetTxFifoThreshold(&huart2, UART_TXFIFO_THRESHOLD_8_8) != HAL_OK)
   {
     Error_Handler();
   }
+
   init_motors();
   timer1_LeftEncoder_start();
   timer3_RightEncoder_start();
 
   /* USER CODE END 2 */
 
-  /* Init scheduler */
-  osKernelInitialize();
-
-  /* Call init function for freertos objects (in cmsis_os2.c) */
-  MX_FREERTOS_Init();
-
-  /* Start scheduler */
-  osKernelStart();
-
-  /* We should never get here as control is now taken by the scheduler */
-
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  // OdoInit(&odo);
+  zetta_init(&hzettarx, iface);
+  zetta_init(&hzettatx, iface);
   OdoInit(&odo);
+  nav_data.nav_state = 3;
+  nav_data.cmd = 0.0f;
+  HAL_UART_Receive_DMA(&huart2, (uint8_t *)&zetta_rx_byte, 1);
+
   while (1)
   {
+    // switch (nav_data.nav_state)
+    // {
+    // case 0: // RESET
+    //   /* code */
+    //   command_motors(0, 0);
+    //   osDelay(20);
+    //   OdoInit(&odo);
+    //   OdoUpdate(&odo, 0);
+    //   zetta_send(&hzettatx, MSG_PUBLISH, &odo, sizeof(OdometryTypedef));
+    //   nav_data.nav_state = 3 ;
+    //   break;
+    // case 1:
+    //   /* code */
+    //   position_control(nav_data.cmd, &odo);
+    //   nav_data.nav_state = 3 ;
+    //   break;
+    // case 2:
+    //   /* code */
+    //   angle_control(DEG2RAD(nav_data.cmd), &odo);
+
+    //   nav_data.nav_state = 3 ;
+    //   break;
+
+    // default:
+
+    //   command_motors(0, 0);
+    //   osDelay(20);
+    //   OdoUpdate(&odo, 0);
+    //   zetta_send(&hzettatx, MSG_PUBLISH, &odo, sizeof(OdometryTypedef));
+    //   break;
+    // }
     // test_uart();
     // test_encoder();
-    // btn_state = read_btn_status();
-    // if (btn_state)
-    // {
-    //   position_control(50, &odo);
-    //   delay_ms(1000);
-    //   angle_control(DEG2RAD(90), &odo);
-    //   delay_ms(1000);
-    //   position_control(50, &odo);
-    //   delay_ms(1000);
-    //   angle_control(DEG2RAD(90), &odo);
-    //   delay_ms(1000);
-    //   position_control(50, &odo);
-    //   delay_ms(1000);
-    //   angle_control(DEG2RAD(90), &odo);
-    //   delay_ms(1000);
-    //   position_control(50, &odo);
-    //   delay_ms(1000);
-    //   angle_control(DEG2RAD(90), &odo);
+    btn_state = read_btn_status();
+    if (btn_state)
+    {
+      // position_control(50, &odo);
+      // delay_ms(1000);
+      angle_control(DEG2RAD(90), &odo);
+      // delay_ms(1000);
+      // position_control(50, &odo);
+      // delay_ms(1000);
+      // angle_control(DEG2RAD(90), &odo);
+      // delay_ms(1000);
+      // position_control(50, &odo);
+      // delay_ms(1000);
+      // angle_control(DEG2RAD(90), &odo);
+      // delay_ms(1000);
+      // position_control(50, &odo);
+      // delay_ms(1000);
+      // angle_control(DEG2RAD(90), &odo);
 
-    //   btn_state = 0;
-    // }
-    // HAL_Delay(1000);
+      btn_state = 0;
+    }
+    HAL_Delay(1000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -176,21 +249,21 @@ int main(void)
 }
 
 /**
-  * @brief System Clock Configuration
-  * @retval None
-  */
+ * @brief System Clock Configuration
+ * @retval None
+ */
 void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
   /** Configure the main internal regulator output voltage
-  */
+   */
   HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1);
 
   /** Initializes the RCC Oscillators according to the specified parameters
-  * in the RCC_OscInitTypeDef structure.
-  */
+   * in the RCC_OscInitTypeDef structure.
+   */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSIDiv = RCC_HSI_DIV1;
@@ -202,9 +275,8 @@ void SystemClock_Config(void)
   }
 
   /** Initializes the CPU, AHB and APB buses clocks
-  */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1;
+   */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
@@ -216,16 +288,16 @@ void SystemClock_Config(void)
 }
 
 /**
-  * @brief NVIC Configuration.
-  * @retval None
-  */
+ * @brief NVIC Configuration.
+ * @retval None
+ */
 static void MX_NVIC_Init(void)
 {
   /* DMA1_Channel1_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 3, 0);
+  HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
   /* DMA1_Channel2_3_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA1_Channel2_3_IRQn, 3, 0);
+  HAL_NVIC_SetPriority(DMA1_Channel2_3_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel2_3_IRQn);
 }
 
@@ -234,13 +306,13 @@ static void MX_NVIC_Init(void)
 /* USER CODE END 4 */
 
 /**
-  * @brief  Period elapsed callback in non blocking mode
-  * @note   This function is called  when TIM6 interrupt took place, inside
-  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
-  * a global variable "uwTick" used as application time base.
-  * @param  htim : TIM handle
-  * @retval None
-  */
+ * @brief  Period elapsed callback in non blocking mode
+ * @note   This function is called  when TIM6 interrupt took place, inside
+ * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
+ * a global variable "uwTick" used as application time base.
+ * @param  htim : TIM handle
+ * @retval None
+ */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   /* USER CODE BEGIN Callback 0 */
@@ -256,9 +328,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 }
 
 /**
-  * @brief  This function is executed in case of error occurrence.
-  * @retval None
-  */
+ * @brief  This function is executed in case of error occurrence.
+ * @retval None
+ */
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
@@ -270,14 +342,14 @@ void Error_Handler(void)
   /* USER CODE END Error_Handler_Debug */
 }
 
-#ifdef  USE_FULL_ASSERT
+#ifdef USE_FULL_ASSERT
 /**
-  * @brief  Reports the name of the source file and the source line number
-  *         where the assert_param error has occurred.
-  * @param  file: pointer to the source file name
-  * @param  line: assert_param error line source number
-  * @retval None
-  */
+ * @brief  Reports the name of the source file and the source line number
+ *         where the assert_param error has occurred.
+ * @param  file: pointer to the source file name
+ * @param  line: assert_param error line source number
+ * @retval None
+ */
 void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
