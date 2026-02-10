@@ -18,6 +18,14 @@ typedef enum
     ANGULAR_CMD=0,
     POSITION_CMD,
 } Command_type;
+/*
+   - absolute angle: control therobot needs face the desired angle (world frame orientation)
+   - relative angle: incremental rotation 
+*/
+typedef enum { 
+    ABSOLUTE_ANGLE , 
+    RELATIVE_ANGLE, 
+}ANGLE_CONTORL_t; 
 typedef struct
 {
 
@@ -38,6 +46,6 @@ void position_control(int16_t desired_distance, OdometryTypedef *odo);
 * @param desired_angle target angle in rad
 * @param odo            odometry struct 
 */
-void angle_control(float desired_angle, OdometryTypedef *odo);
+void angle_control(ANGLE_CONTORL_t angle_type , float desired_angle, OdometryTypedef *odo);
 
 #endif

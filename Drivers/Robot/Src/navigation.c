@@ -80,7 +80,17 @@ PID_Profile pid_theta = {
     .correction = 0.0f,
     .ramped_setpoint = 0.0f,
     .target = 0.0f};
-void angle_control(float desired_angle, OdometryTypedef *odo)
+
+void absolute_angle(float desired_angle, float current_angle)
+{
+    float out = desired_angle - current_angle;
+}
+void relative_angle(float desired_angle, float current_angle)
+{
+
+    float out = desired_angle - current_angle;
+}
+void angle_control(ANGLE_CONTORL_t type, float desired_angle, OdometryTypedef *odo)
 {
     float w_P = 0, w_I = 0, w_D = 0;
     float theta_P = 0, theta_I = 0, theta_D = 0;
@@ -99,15 +109,16 @@ void angle_control(float desired_angle, OdometryTypedef *odo)
     float w_last_error = 0.0f;     // Velocity starts at 0, so 0 is fine here
     float dt = 0.0;
     last = get_current_time_ms();
-    // now = get_current_time_ms();
-    // dt = (float)(now - last) / 1000.0f;
-    // if (dt <= 0)
-    //     dt = 0.001f;
-    // last = now;
-    // OdoUpdate(odo, dt);
-
-    // pid_theta.target = pid_theta.target + odo->angle_rad;
-
+    if (type == RELATIVE_ANGLE)
+    {
+        now = get_current_time_ms();
+        dt = (float)(now - last) / 1000.0f;
+        if (dt <= 0)
+            dt = 0.001f;
+        last = now;
+        OdoUpdate(odo, dt);
+        pid_theta.target = pid_theta.target + odo->angle_rad;
+    }
     while (1)
     {
         now = get_current_time_ms();
